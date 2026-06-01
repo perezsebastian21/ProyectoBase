@@ -161,7 +161,7 @@ export default function InstallPrompt() {
           </div>
         ) : (
           <p className="text-[11px] text-slate-400 italic">
-            Para instalar en Android o PC, abre el menú de opciones de tu navegador y selecciona "Instalar Aplicación".
+            Para instalar en Android o PC, abre el menú de opciones de tu navegador y selecciona &quot;Instalar Aplicación&quot;.
           </p>
         )}
       </div>

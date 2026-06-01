@@ -1,5 +1,6 @@
 import InstallPrompt from '@/components/InstallPrompt'
 import PushNotificationManager from '@/components/PushNotificationManager'
+import BackendHealthStatus from '@/components/BackendHealthStatus'
 
 export default function Home() {
   return (
@@ -13,6 +14,9 @@ export default function Home() {
             El entorno de Next.js, Tailwind CSS y TypeScript está listo para usarse con soporte PWA.
           </p>
         </div>
+
+        {/* Estado de Conectividad con el Backend */}
+        <BackendHealthStatus />
 
         {/* Gestor de Notificaciones Push (Frontend) */}
         <PushNotificationManager />

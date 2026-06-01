@@ -42,7 +42,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 7. Configurar el pipeline de middleware HTTP
+// 7. Aplicar migraciones pendientes automáticamente al iniciar
+// Esto crea la base de datos y las tablas si no existen (ej: primer deploy en Render)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
+// 8. Configurar el pipeline de middleware HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();

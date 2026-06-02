@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-brand-background: #051424;
-  --color-brand-surface: #051424;
-  --color-brand-surface-container: #0d1c2d;
-  --color-brand-surface-bright: #2c3a4c;
-  --color-brand-surface-elevated: #162536;
-  --color-brand-primary: #3b82f6;
-  --color-brand-success: #10b981;
-  --color-brand-error: #f87171;
-  --color-brand-warning: #fbbf24;
+  --color-brand-background: var(--brand-background);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-surface-container: var(--brand-surface-container);
+  --color-brand-surface-bright: var(--brand-surface-bright);
+  --color-brand-surface-elevated: var(--brand-surface-elevated);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-success: var(--brand-success);
+  --color-brand-error: var(--brand-error);
+  --color-brand-warning: var(--brand-warning);
   
   --font-geist: var(--font-geist-sans), sans-serif;
 
@@ -28,13 +30,39 @@
 }
 
 :root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  --brand-background: #f8fafc;
+  --brand-surface: #ffffff;
+  --brand-surface-container: #f1f5f9;
+  --brand-surface-bright: #cbd5e1;
+  --brand-surface-elevated: #ffffff;
+  --brand-primary: #2563eb;
+  --brand-success: #059669;
+  --brand-error: #dc2626;
+  --brand-warning: #d97706;
+}
+
+.dark {
   --background: #051424;
   --foreground: #f8fafc;
+
+  --brand-background: #051424;
+  --brand-surface: #051424;
+  --brand-surface-container: #0d1c2d;
+  --brand-surface-bright: #2c3a4c;
+  --brand-surface-elevated: #162536;
+  --brand-primary: #3b82f6;
+  --brand-success: #10b981;
+  --brand-error: #f87171;
+  --brand-warning: #fbbf24;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 

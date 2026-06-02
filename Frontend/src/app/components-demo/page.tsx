@@ -86,7 +86,7 @@ export default function ComponentsDemoPage() {
   });
 
   return (
-    <div className="min-h-screen bg-brand-background text-slate-100 flex flex-col font-sans pb-32">
+    <div className="min-h-screen bg-brand-background text-slate-800 dark:text-slate-100 flex flex-col font-sans pb-32 transition-colors duration-300">
       {/* Top Header */}
       <TopAppBar
         title="Guía de Componentes"
@@ -97,10 +97,10 @@ export default function ComponentsDemoPage() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-12">
         {/* Intro */}
         <section className="space-y-3">
-          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-500 via-emerald-500 to-indigo-500 dark:from-blue-400 dark:via-emerald-400 dark:to-indigo-400 bg-clip-text text-transparent">
             Residencial Pro UI Kit
           </h2>
-          <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-sm max-w-2xl leading-relaxed">
             Explora la biblioteca de componentes diseñados bajo los lineamientos visuales del proyecto{" "}
             <span className="text-brand-primary font-semibold">Vantage Residential OS</span>.
             Todos los componentes admiten interactividad, micro-animaciones en hover y transiciones fluidas.
@@ -131,7 +131,7 @@ export default function ComponentsDemoPage() {
             
             <IconButton
               icon={
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-16v.01M4 12h2m2 4h4a2 2 0 002-2v-4a2 2 0 00-2-2H8a2 2 0 00-2 2v4a2 2 0 002 2z" />
                 </svg>
               }
@@ -140,7 +140,7 @@ export default function ComponentsDemoPage() {
               Ver Código QR
             </IconButton>
 
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
               Clicks en Botón Principal: <strong className="text-brand-primary">{clickCount}</strong>
             </span>
           </div>
@@ -159,7 +159,7 @@ export default function ComponentsDemoPage() {
                 onChange={setFilterValue}
               />
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Valor actual del filtro: <strong className="text-brand-primary">{filterValue}</strong>
             </p>
           </div>
@@ -248,7 +248,7 @@ export default function ComponentsDemoPage() {
                 />
               ))
             ) : (
-              <div className="p-8 text-center rounded-2xl border border-dashed border-brand-surface-bright/20 text-slate-500 text-xs">
+              <div className="p-8 text-center rounded-2xl border border-dashed border-brand-surface-bright/20 text-slate-500 dark:text-slate-400 text-xs">
                 No hay incidencias registradas con el estado actual del filtro.
               </div>
             )}

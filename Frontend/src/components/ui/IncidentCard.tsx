@@ -50,11 +50,11 @@ export default function IncidentCard({
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               #{id}
             </span>
-            <span className="text-[10px] font-semibold text-slate-400">
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
               • {category}
             </span>
           </div>
-          <h3 className="text-base font-bold text-slate-100 group-hover:text-white transition-colors duration-200">
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 group-hover:dark:text-white transition-colors duration-200">
             {title}
           </h3>
         </div>
@@ -73,7 +73,7 @@ export default function IncidentCard({
 
         {/* Reporter info and Time elapsed */}
         <div className="flex items-center gap-2.5">
-          <span className="text-[11px] text-slate-400 font-medium">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             {timeLabel}
           </span>
           <div className="flex items-center gap-1.5">
@@ -85,12 +85,12 @@ export default function IncidentCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <svg className="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
               )}
             </div>
-            <span className="text-[11px] text-slate-300 font-bold max-w-[80px] truncate">
+            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold max-w-[80px] truncate">
               {reporterName}
             </span>
           </div>

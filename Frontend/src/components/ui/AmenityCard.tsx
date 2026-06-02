@@ -31,7 +31,7 @@ export default function AmenityCard({
       />
 
       {/* Tonal Layering Overlay (Premium Gradient) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-brand-background via-brand-background/40 to-black/40 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#051424] via-[#051424]/45 to-black/40 transition-opacity duration-300" />
 
       {/* Top Floating Status Badge */}
       <div className="absolute top-4 right-4 z-10">
@@ -63,7 +63,7 @@ export default function AmenityCard({
         {/* Integrated Action Button */}
         <button
           onClick={onBookClick}
-          className="w-full relative flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-brand-surface-bright/20 hover:bg-brand-primary hover:text-white border border-brand-surface-bright/35 hover:border-brand-primary text-slate-100 text-xs font-semibold tracking-wide uppercase transition-all duration-300 active:scale-[0.98] cursor-pointer"
+          className="w-full relative flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-brand-primary hover:text-white border border-white/20 hover:border-brand-primary text-slate-100 text-xs font-semibold tracking-wide uppercase transition-all duration-300 active:scale-[0.98] cursor-pointer focus:outline-none"
         >
           <span>Reservar Espacio</span>
           <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

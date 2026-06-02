@@ -41,7 +41,7 @@ export default function DashboardActionCard({
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
             {category}
           </span>
-          <h3 className="text-xl font-bold text-slate-100 group-hover:text-white transition-colors duration-200">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 group-hover:dark:text-white transition-colors duration-200">
             {title}
           </h3>
         </div>
@@ -50,7 +50,7 @@ export default function DashboardActionCard({
         <div className="flex items-center gap-3">
           <StatusBadge status={badgeStatus} label={badgeLabel} />
           {icon && (
-            <div className="p-2 rounded-xl bg-brand-surface-bright/10 border border-brand-surface-bright/15 text-slate-400 group-hover:text-brand-primary group-hover:border-brand-primary/30 transition-all duration-300">
+            <div className="p-2 rounded-xl bg-brand-surface-bright/10 border border-brand-surface-bright/15 text-slate-500 dark:text-slate-400 group-hover:text-brand-primary group-hover:border-brand-primary/30 transition-all duration-300">
               {icon}
             </div>
           )}
@@ -59,14 +59,14 @@ export default function DashboardActionCard({
 
       {/* Optional Description */}
       {description && (
-        <p className="text-slate-400 text-xs leading-relaxed group-hover:text-slate-300 transition-colors duration-200">
+        <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed group-hover:text-slate-800 dark:group-hover:text-slate-300 transition-colors duration-200">
           {description}
         </p>
       )}
 
       {/* Optional Date Information for Reservation cards */}
       {dateInfo && (
-        <div className="mt-4 pt-4 border-t border-brand-surface-bright/10 flex items-center gap-4 text-xs text-slate-400">
+        <div className="mt-4 pt-4 border-t border-brand-surface-bright/10 flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-1.5">
             <svg className="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

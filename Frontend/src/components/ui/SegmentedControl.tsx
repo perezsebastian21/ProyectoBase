@@ -28,7 +28,7 @@ export default function SegmentedControl({
             className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 cursor-pointer ${
               isActive
                 ? "bg-brand-primary text-white shadow-md"
-                : "text-slate-400 hover:text-slate-200 hover:bg-brand-surface-bright/20"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-brand-surface-bright/20"
             }`}
           >
             {option}

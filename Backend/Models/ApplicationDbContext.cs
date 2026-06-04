@@ -10,6 +10,7 @@ namespace ProyectoBase.Models
         }
 
         public DbSet<Persona> Personas { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,44 @@ namespace ProyectoBase.Models
 
                 entity.HasIndex(e => e.Email)
                       .IsUnique();
+            });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.ToTable("PB_Usuario");
+
+                // Clave primaria
+                entity.HasKey(e => e.IDUsuario);
+
+                // Propiedades obligatorias y longitudes máximas
+                entity.Property(e => e.Username)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(e => e.Password)
+                      .IsRequired()
+                      .HasMaxLength(255);
+
+                entity.Property(e => e.Email)
+                      .IsRequired()
+                      .HasMaxLength(250);
+
+                entity.Property(e => e.Activo)
+                      .IsRequired()
+                      .HasDefaultValue(true);
+
+                // Índices únicos
+                entity.HasIndex(e => e.Username)
+                      .IsUnique();
+
+                entity.HasIndex(e => e.Email)
+                      .IsUnique();
+
+                // Relación con Persona
+                entity.HasOne(e => e.Persona)
+                      .WithMany()
+                      .HasForeignKey(e => e.IDPersona)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

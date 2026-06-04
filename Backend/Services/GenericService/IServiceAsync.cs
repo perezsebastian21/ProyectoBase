@@ -2,7 +2,7 @@ using ProyectoBase.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ProyectoBase.Services
+namespace ProyectoBase.Services.GenericService
 {
     public interface IServiceAsync<T> where T : class
     {

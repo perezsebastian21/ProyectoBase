@@ -1,7 +1,7 @@
 using Moq;
 using FluentAssertions;
 using Xunit;
-using ProyectoBase.Services;
+using ProyectoBase.Services.GenericService;
 using ProyectoBase.DataAccess.Interfaces;
 using ProyectoBase.Models;
 using ProyectoBase.Exceptions;

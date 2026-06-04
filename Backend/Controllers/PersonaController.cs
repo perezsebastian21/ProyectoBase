@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProyectoBase.Models;
-using ProyectoBase.Services;
+using ProyectoBase.Services.GenericService;
 
 namespace ProyectoBase.Controllers
 {

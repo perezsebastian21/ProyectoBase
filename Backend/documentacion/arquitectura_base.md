@@ -269,7 +269,7 @@ Hereda del controlador genérico y pasa la interfaz de servicio genérica al con
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 using ProyectoBase.Models;
-using ProyectoBase.Services;
+using ProyectoBase.Services.GenericService;
 
 namespace ProyectoBase.Controllers
 {
@@ -505,13 +505,13 @@ namespace ProyectoBase.DataAccess.Servicios
 El **Servicio Genérico** actúa como intermediario entre el controlador y la persistencia. Contiene la lógica CRUD estándar y expone hooks virtuales (`BuildCriterio` y `BuildOrder`) que las clases específicas pueden sobrescribir para añadir comportamientos de consulta y reglas del negocio sin duplicar el flujo asíncrono.
 
 #### Interface: `IServiceAsync.cs`
-[IServiceAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/IServiceAsync.cs)
+[IServiceAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/GenericService/IServiceAsync.cs)
 ```csharp
 using ProyectoBase.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ProyectoBase.Services
+namespace ProyectoBase.Services.GenericService
 {
     public interface IServiceAsync<T> where T : class
     {
@@ -527,7 +527,7 @@ namespace ProyectoBase.Services
 ```
 
 #### Implementación: `ServiceAsync.cs`
-[ServiceAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/ServiceAsync.cs)
+[ServiceAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/GenericService/ServiceAsync.cs)
 ```csharp
 using ProyectoBase.DataAccess.Interfaces;
 using ProyectoBase.Exceptions;
@@ -537,7 +537,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace ProyectoBase.Services
+namespace ProyectoBase.Services.GenericService
 {
     public class ServiceAsync<T> : IServiceAsync<T> where T : class
     {
@@ -982,7 +982,7 @@ El `PersonaController` es un controlador de entrada que hereda de `GenericContro
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 using ProyectoBase.Models;
-using ProyectoBase.Services;
+using ProyectoBase.Services.GenericService;
 
 namespace ProyectoBase.Controllers
 {
@@ -1166,6 +1166,309 @@ Desde esta consola interactiva podrás:
 * Visualizar todos los controladores y endpoints disponibles de forma ordenada.
 * Probar cualquier operación del CRUD (`GET`, `POST`, `PUT`, `DELETE`) en tiempo real mediante el botón **"Try it out"**.
 * Visualizar las respuestas de éxito (`200 OK`) y de error formateadas uniformemente por nuestro middleware global.
+
+---
+
+## 14. Autenticación — AccountController y TokenService
+
+### 14.1 Rol dentro de la Arquitectura
+
+El subsistema de autenticación está compuesto por **controladores y servicios especializados** que operan fuera del trinomio genérico. No generan tablas en la base de datos ni heredan de `GenericControllerAsync<T>` — son componentes de infraestructura transversal con responsabilidades propias.
+
+```
+[ Cliente HTTP ]
+      │  POST /account/login  { usuario, password }
+      ▼
+┌─────────────────────────┐
+│ AccountController       │  ← Controlador especializado (no genérico)
+│  - recibe LoginRequest  │
+│  - delega al servicio   │
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│ TokenService            │  ← Servicio de infraestructura (no de dominio)
+│  - lee config JWT       │
+│  - construye el JWT     │
+│  - retorna string token │
+└─────────────────────────┘
+             │
+             ▼
+[ Cliente recibe: { token, expiration } ]
+```
+
+> [!NOTE]
+> A diferencia de los servicios del trinomio genérico (`IServiceAsync<T>`), el `ITokenService` **no interactúa con la base de datos** ni con `ApplicationDbContext`. Su única responsabilidad es construir y firmar tokens JWT a partir de la configuración.
+
+---
+
+### 14.2 Componentes
+
+#### DTO: [`LoginRequest.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Models/LoginRequest.cs)
+
+Contrato de entrada del endpoint de login. Es un DTO (Data Transfer Object), no una entidad de dominio — no genera tabla en la base de datos.
+
+```csharp
+namespace ProyectoBase.Models
+{
+    public class LoginRequest
+    {
+        public string Usuario { get; set; }
+        public string Password { get; set; }
+    }
+}
+```
+
+---
+
+#### Interface: [`ITokenService.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/TokenService/ITokenService.cs)
+
+```csharp
+namespace ProyectoBase.Services.TokenService
+{
+    public interface ITokenService
+    {
+        /// <summary>
+        /// Genera un JWT para el usuario autenticado.
+        /// </summary>
+        string GenerateAdminToken(string username);
+    }
+}
+```
+
+---
+
+#### Implementación: [`TokenService.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/TokenService/TokenService.cs)
+
+Lee la configuración JWT desde `appsettings.json` (o variables de entorno en producción) y construye el token firmado con HMAC-SHA256:
+
+```csharp
+public string GenerateAdminToken(string username)
+{
+    var claims = new List<Claim> { new Claim(ClaimTypes.Name, username) };
+
+    var key = new SymmetricSecurityKey(
+        Encoding.UTF8.GetBytes(_config["Jwt:Admin:Key"]));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    int expirationHours = int.Parse(_config["Jwt:Admin:ExpirationHours"] ?? "1");
+
+    var token = new JwtSecurityToken(
+        issuer:   _config["Jwt:Admin:Issuer"],
+        audience: _config["Jwt:Admin:Audience"],
+        claims:   claims,
+        expires:  DateTime.UtcNow.AddHours(expirationHours),
+        signingCredentials: creds);
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+```
+
+---
+
+#### Controlador: [`AccountController.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Controllers/AccountController.cs)
+
+Controlador especializado que expone el endpoint de login. No hereda del controlador genérico.
+
+```csharp
+[ApiController]
+[Route("[controller]")]
+public class AccountController : ControllerBase
+{
+    private readonly ITokenService _tokenService;
+
+    public AccountController(ITokenService tokenService)
+    {
+        _tokenService = tokenService;
+    }
+
+    [HttpPost("Login")]
+    public IActionResult Login([FromBody] LoginRequest request)
+    {
+        // TODO: implementar validación real (DB / LDAP) cuando corresponda.
+        string token = _tokenService.GenerateAdminToken(request.Usuario);
+
+        return Ok(new ServiceResponse<object>(new
+        {
+            token,
+            expiration = DateTime.UtcNow.AddHours(1)
+        }));
+    }
+}
+```
+
+**Endpoint disponible:**
+
+| Método | Ruta | Body | Descripción |
+|---|---|---|---|
+| `POST` | `/account/login` | `{ "usuario": "...", "password": "..." }` | Genera un JWT para el usuario |
+
+**Respuesta exitosa:**
+```json
+{
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiration": "2026-06-04T12:00:00Z"
+  },
+  "success": true,
+  "errorMessage": null
+}
+```
+
+---
+
+### 14.3 Configuración JWT
+
+La configuración del token se define en `appsettings.json` bajo la sección `Jwt`:
+
+```json
+{
+  "Jwt": {
+    "Admin": {
+      "Key": "CLAVE_LOCAL_DESARROLLO_MINIMO_32_CARACTERES_CAMBIAR",
+      "Issuer": "ProyectoBase",
+      "Audience": "ProyectoBase",
+      "ExpirationHours": "1"
+    }
+  }
+}
+```
+
+| Clave | Descripción |
+|---|---|
+| `Key` | Clave secreta para firmar el token (mínimo 32 caracteres) |
+| `Issuer` | Identificador del emisor del token |
+| `Audience` | Identificador del receptor esperado del token |
+| `ExpirationHours` | Duración del token en horas |
+
+> [!CAUTION]
+> No commitear la clave real en el repositorio. En producción (Render), configurar como variable de entorno: `Jwt__Admin__Key=valor_real` (doble guión bajo como separador de sección).
+
+---
+
+### 14.4 Registro en Program.cs
+
+El `TokenService` se registra con ciclo de vida `Scoped` (por petición HTTP), igual que el resto de servicios del proyecto:
+
+```csharp
+using ProyectoBase.Services.TokenService;
+// ...
+builder.Services.AddScoped<ITokenService, TokenService>();
+```
+
+---
+
+### 14.5 Estado actual y extensión futura
+
+> [!IMPORTANT]
+> **Estado actual**: el endpoint genera un JWT para cualquier usuario sin validar credenciales. Es un "login simple" funcional para permitir la interacción con el frontend mientras se define el mecanismo de autenticación real.
+
+Cuando se implemente la validación real, el flujo se extenderá en `AccountController.Login()`:
+
+```csharp
+// Opción A: validación contra tabla de usuarios en la DB
+var usuario = await _usuarioService.FindBy(request.Usuario);
+if (usuario == null || !VerificarPassword(request.Password, usuario.PasswordHash))
+    return Unauthorized(new ServiceResponse<object>(success: false, errorMessage: "Credenciales inválidas."));
+
+// Opción B: validación contra LDAP
+var esValido = await _ldapValidator.ValidarAsync(request.Usuario, request.Password);
+if (!esValido)
+    return Unauthorized(...);
+
+// En ambos casos, si la validación pasa:
+string token = _tokenService.GenerateAdminToken(request.Usuario);
+```
+
+---
+
+## 15. Proyecto de Pruebas Unitarias (`ProyectoBase.Tests`)
+
+### 15.1 Stack y Configuración
+
+El proyecto de tests es un proyecto xUnit independiente que referencia al proyecto principal. No requiere ninguna dependencia de infraestructura real (DB, red, configuración de archivo).
+
+| Paquete | Versión | Rol |
+|---|---|---|
+| `xunit` | 2.9.2 | Framework de tests |
+| `Moq` | 4.20.72 | Mocking de dependencias |
+| `FluentAssertions` | 7.0.0 | Assertions legibles y expresivas |
+| `Microsoft.NET.Test.Sdk` | 17.12.0 | Runner de tests |
+
+### 15.2 Estructura de Carpetas
+
+```
+ProyectoBase.Tests/
+├── Controllers/
+│   └── AccountControllerTests.cs   ← tests del controller de autenticación
+└── Services/
+    ├── ServiceAsyncTests.cs         ← tests del servicio genérico
+    └── TokenServiceTests.cs         ← tests del servicio JWT
+```
+
+### 15.3 Tests del Servicio Genérico ([`ServiceAsyncTests.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/ProyectoBase.Tests/Services/ServiceAsyncTests.cs))
+
+Verifica el comportamiento de `ServiceAsync<T>` usando `Persona` como entidad de prueba y Moq para simular el repositorio:
+
+| Test | Qué verifica |
+|---|---|
+| `GetByID_WhenEntityExists_ShouldReturnEntity` | Retorna la entidad correcta cuando existe |
+| `GetByID_WhenEntityDoesNotExist_ShouldThrowNotFoundException` | Lanza `NotFoundException` cuando el ID no existe |
+
+### 15.4 Tests del AccountController ([`AccountControllerTests.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/ProyectoBase.Tests/Controllers/AccountControllerTests.cs))
+
+Verifica el comportamiento de `AccountController` mockeando `ITokenService` para aislar el controller de la implementación real del JWT:
+
+| Test | Qué verifica |
+|---|---|
+| `Login_ShouldReturn200OK` | El endpoint retorna HTTP 200 |
+| `Login_ShouldCallGenerateAdminToken_WithCorrectUsername` | Delega al servicio con el usuario correcto |
+| `Login_ResponseBody_ShouldContainTokenFromService` | El body contiene el token generado por el servicio |
+| `Login_WithEmptyPassword_ShouldStillReturn200` | Funciona sin validación de password (login simple) |
+| `Login_ShouldCallTokenService_ExactlyOnce` | El servicio se llama exactamente una vez por request |
+
+### 15.5 Tests del TokenService ([`TokenServiceTests.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/ProyectoBase.Tests/Services/TokenServiceTests.cs))
+
+Verifica la generación real de JWT usando `ConfigurationBuilder` con valores en memoria, sin depender de `appsettings.json`:
+
+```csharp
+// Setup en el constructor del test
+var config = new ConfigurationBuilder()
+    .AddInMemoryCollection(new Dictionary<string, string>
+    {
+        { "Jwt:Admin:Key",             "clave-secreta-de-prueba-minimo-32-caracteres-ok" },
+        { "Jwt:Admin:Issuer",          "ProyectoBase" },
+        { "Jwt:Admin:Audience",        "ProyectoBase" },
+        { "Jwt:Admin:ExpirationHours", "1" }
+    })
+    .Build();
+```
+
+| Test | Qué verifica |
+|---|---|
+| `GenerateAdminToken_ShouldReturnNonEmptyString` | El token no es nulo ni vacío |
+| `GenerateAdminToken_ShouldReturnValidJwtFormat` | El token tiene 3 partes separadas por `.` (header.payload.signature) |
+| `GenerateAdminToken_ShouldContainUsername_InClaims` | El claim de usuario está presente en el payload |
+| `GenerateAdminToken_ShouldHaveCorrectIssuer` | El issuer coincide con la configuración |
+| `GenerateAdminToken_ShouldHaveCorrectAudience` | El audience coincide con la configuración |
+| `GenerateAdminToken_ShouldExpireInOneHour` | La expiración es aproximadamente 1 hora |
+| `GenerateAdminToken_BothTokens_ShouldContainSameUsername` | Ambas llamadas producen tokens con el mismo usuario |
+
+> [!NOTE]
+> **`ClaimTypes.Name` en JWT**: en .NET, `ClaimTypes.Name` se serializa en el token JWT con la URI completa `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name` (estándar WS-Federation). Al leer el token con `JwtSecurityTokenHandler.ReadJwtToken()`, hay que buscar el claim por esa URI completa, no por `"name"` o `"unique_name"`.
+
+### 15.6 Ejecutar los Tests
+
+```powershell
+# Correr todos los tests
+dotnet test ./Backend/ProyectoBase.Tests/ProyectoBase.Tests.csproj
+
+# Con salida detallada
+dotnet test ./Backend/ProyectoBase.Tests/ProyectoBase.Tests.csproj --verbosity normal
+
+# Solo un namespace
+dotnet test --filter "FullyQualifiedName~ProyectoBase.Tests.Controllers"
+```
 
 ---
 

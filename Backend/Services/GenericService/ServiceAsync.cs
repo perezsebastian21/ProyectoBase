@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace ProyectoBase.Services
+namespace ProyectoBase.Services.GenericService
 {
     public class ServiceAsync<T> : IServiceAsync<T> where T : class
     {

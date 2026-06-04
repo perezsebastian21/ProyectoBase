@@ -9,3 +9,5 @@
 
 # Mac
 .DS_Store
+/Backend/obj
+/Backend/bin

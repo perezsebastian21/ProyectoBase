@@ -1,0 +1,25 @@
+# ============================================================
+# .dockerignore — ProyectoBase Backend
+# ============================================================
+
+# Backend — artefactos de compilación local (no van al build context)
+/Backend/.vs/
+/Backend/bin/
+/Backend/obj/
+/Backend/ProyectoBase.Tests/
+
+# Frontend — no se incluye en el deploy del backend
+/Frontend/
+
+# DEPLOY — carpetas con artefactos viejos o de otro proyecto
+/DEPLOY/publish/
+/DEPLOY/build/
+/DEPLOY/certs/
+
+# Git
+.git/
+.github/
+
+# Misc
+*.user
+*.suo

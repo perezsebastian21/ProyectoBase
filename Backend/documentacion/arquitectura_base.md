@@ -14,32 +14,36 @@ graph TD
     
     subgraph "1. Capa de API (Presentación)"
         MW["GlobalErrorHandlingMiddleware"]
+        GCtrl["GenericControllerAsync T — abstracto"]
         Ctrl["PersonaController"]
+        HCtrl["HealthController"]
     end
     
     subgraph "2. Capa de Servicios (Lógica de Negocio)"
-        Serv["ServiceAsync<T> (Genérico)"]
+        Serv["ServiceAsync T — Genérico"]
     end
     
     subgraph "3. Capa de Acceso a Datos (Persistencia)"
-        Repo["RepositoryAsync<T>"]
+        Repo["RepositoryAsync T"]
         Ctx["ApplicationDbContext"]
     end
     
     subgraph "4. Capa de Entidades (Core)"
-        Ent["Entidad Persona"]
-        Helpers["ServiceResponse & PagedResponse"]
+        Ent["Entidades: Persona, ..."]
+        Helpers["ServiceResponse y PagedResponse"]
     end
     
     Client -->|Petición JSON| MW
     MW --> Ctrl
-    Ctrl -->|Inyecta| Serv
-    Serv -->|Inyecta| Repo
+    MW --> HCtrl
+    Ctrl -.->|hereda| GCtrl
+    GCtrl -->|usa| Serv
+    Serv -->|usa| Repo
     Repo --> Ctx
     
     %% Dependencia común al Core
-    Ctrl & Serv & Repo -.-> Ent
-    Ctrl & Serv & Repo -.-> Helpers
+    GCtrl & Serv & Repo -.-> Ent
+    GCtrl & Serv & Repo -.-> Helpers
 ```
 
 ---
@@ -320,7 +324,7 @@ A continuación se detalla el código completo y la explicación técnica de las
 El **Repositorio Genérico** encapsula a Entity Framework Core, impidiendo que la lógica de negocio dependa directamente de detalles del ORM. Esto permite cambiar el motor de datos o implementar pruebas unitarias (mocking) de forma sencilla.
 
 #### Interface: `IRepositoryAsync.cs`
-[IRepositoryAsync.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/DataAccess/Interfaces/IRepositoryAsync.cs)
+[IRepositoryAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/DataAccess/Interfaces/IRepositoryAsync.cs)
 ```csharp
 using ProyectoBase.Models;
 using System;
@@ -352,7 +356,7 @@ namespace ProyectoBase.DataAccess.Interfaces
 ```
 
 #### Implementación: `RepositoryAsync.cs`
-[RepositoryAsync.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/DataAccess/Servicios/RepositoryAsync.cs)
+[RepositoryAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/DataAccess/Servicios/RepositoryAsync.cs)
 ```csharp
 using Microsoft.EntityFrameworkCore;
 using ProyectoBase.DataAccess.Interfaces;
@@ -501,7 +505,7 @@ namespace ProyectoBase.DataAccess.Servicios
 El **Servicio Genérico** actúa como intermediario entre el controlador y la persistencia. Contiene la lógica CRUD estándar y expone hooks virtuales (`BuildCriterio` y `BuildOrder`) que las clases específicas pueden sobrescribir para añadir comportamientos de consulta y reglas del negocio sin duplicar el flujo asíncrono.
 
 #### Interface: `IServiceAsync.cs`
-[IServiceAsync.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/Services/IServiceAsync.cs)
+[IServiceAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/IServiceAsync.cs)
 ```csharp
 using ProyectoBase.Models;
 using System.Collections.Generic;
@@ -523,7 +527,7 @@ namespace ProyectoBase.Services
 ```
 
 #### Implementación: `ServiceAsync.cs`
-[ServiceAsync.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/Services/ServiceAsync.cs)
+[ServiceAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Services/ServiceAsync.cs)
 ```csharp
 using ProyectoBase.DataAccess.Interfaces;
 using ProyectoBase.Exceptions;
@@ -628,7 +632,7 @@ namespace ProyectoBase.Services
 El **Controlador Genérico** expone una interfaz REST estándar para cualquier entidad, delegando toda la lógica al Servicio Genérico e inyectando un formateo de salida homogéneo (`ServiceResponse`).
 
 #### Implementación: `GenericControllerAsync.cs`
-[GenericControllerAsync.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/Controllers/GenericControllerAsync.cs)
+[GenericControllerAsync.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Controllers/GenericControllerAsync.cs)
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 using ProyectoBase.Models;
@@ -701,6 +705,166 @@ namespace ProyectoBase.Controllers
         }
     }
 }
+```
+
+---
+
+### 8.4 Health Check (`Controllers/HealthController.cs`)
+
+El **HealthController** es un controlador independiente — no forma parte del trinomio genérico. Expone un único endpoint sin dependencias de base de datos ni servicios para verificar que el proceso está vivo. Es fundamental para el monitoreo en plataformas cloud como Render.
+
+#### Implementación: [`HealthController.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Controllers/HealthController.cs)
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+namespace ProyectoBase.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class HealthController : ControllerBase
+    {
+        [HttpGet("alive")]
+        public IActionResult Alive()
+        {
+            return Ok(new
+            {
+                status = "ok",
+                service = "ProyectoBase Backend",
+                timestamp = DateTime.UtcNow,
+                environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"
+            });
+        }
+    }
+}
+```
+
+**Endpoint disponible:**
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/health/alive` | Verifica que el proceso está vivo y responde |
+
+**Respuesta:**
+```json
+{
+  "status": "ok",
+  "service": "ProyectoBase Backend",
+  "timestamp": "2026-06-04T11:00:00Z",
+  "environment": "Production"
+}
+```
+
+> [!NOTE]
+> En Render, configurar `/health/alive` como **Health Check Path** del Web Service para que la plataforma monitoree automáticamente el servicio y lo reinicie si deja de responder.
+
+---
+
+### 8.5 Middleware y Excepciones de Dominio
+
+El manejo de errores del sistema se divide en dos partes complementarias: el middleware que intercepta y formatea cualquier excepción, y las excepciones tipadas que la capa de negocio lanza para comunicar errores semánticos.
+
+#### Middleware: [`GlobalErrorHandlingMiddleware.cs`](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Utility/GlobalErrorHandlingMiddleware.cs)
+
+Intercepta cualquier excepción no controlada del pipeline y la transforma en una respuesta HTTP estructurada usando el contrato estándar `ServiceResponse<T>`.
+
+```csharp
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using ProyectoBase.Exceptions;
+using ProyectoBase.Models;
+using System;
+using System.Net;
+using System.Threading.Tasks;
+
+namespace ProyectoBase.Utility
+{
+    public class GlobalErrorHandlingMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public GlobalErrorHandlingMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                await HandleExceptionAsync(context, ex);
+            }
+        }
+
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        {
+            var code = HttpStatusCode.InternalServerError;
+            string message = "Ocurrió un error interno en el servidor.";
+
+            if (exception is BadRequestException)
+            {
+                code = HttpStatusCode.BadRequest;
+                message = exception.Message;
+            }
+            else if (exception is NotFoundException)
+            {
+                code = HttpStatusCode.NotFound;
+                message = exception.Message;
+            }
+            else if (exception is UnauthorizedAccessException)
+            {
+                code = HttpStatusCode.Unauthorized;
+                message = "Acceso no autorizado.";
+            }
+
+            var response = new ServiceResponse<object>(success: false, errorMessage: message);
+            var result = JsonConvert.SerializeObject(response);
+
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)code;
+
+            return context.Response.WriteAsync(result);
+        }
+    }
+}
+```
+
+**Mapeo de excepciones → HTTP:**
+
+| Excepción | HTTP Status | Cuándo se lanza |
+|---|---|---|
+| `BadRequestException` | `400 Bad Request` | Entidad nula o validación de negocio fallida |
+| `NotFoundException` | `404 Not Found` | ID no existe en la base de datos |
+| `UnauthorizedAccessException` | `401 Unauthorized` | Acceso sin autorización |
+| Cualquier otra | `500 Internal Server Error` | Error inesperado no clasificado |
+
+#### Excepciones de Dominio (`Exceptions/`)
+
+Excepciones tipadas que permiten a la capa de servicio comunicar errores semánticos al middleware sin depender de códigos HTTP directamente, respetando el principio de separación de responsabilidades:
+
+```csharp
+// BadRequestException.cs
+namespace ProyectoBase.Exceptions
+{
+    public class BadRequestException : Exception
+    {
+        public BadRequestException(string message) : base(message) { }
+    }
+}
+
+// NotFoundException.cs
+namespace ProyectoBase.Exceptions
+{
+    public class NotFoundException : Exception
+    {
+        public NotFoundException(string message) : base(message) { }
+    }
+}
+```
 
 ---
 
@@ -711,7 +875,7 @@ Para demostrar la elegancia, extensibilidad y rigurosidad del trinomio genérico
 ### 9.1 El Modelo de Datos y DbContext
 
 #### Entidad: `Persona.cs`
-[Persona.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/Models/Persona.cs)
+[Persona.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Models/Persona.cs)
 Define los atributos específicos del dominio de forma pura (POCO - Plain Old CLR Object) sin ningún tipo de acoplamiento a atributos de infraestructura (`DataAnnotations`).
 ```csharp
 using System;
@@ -732,7 +896,7 @@ namespace ProyectoBase.Models
 ```
 
 #### Contexto: `ApplicationDbContext.cs`
-[ApplicationDbContext.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/Models/ApplicationDbContext.cs)
+[ApplicationDbContext.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Models/ApplicationDbContext.cs)
 Configura todas las claves, restricciones, longitudes y reglas de base de datos de manera centralizada utilizando **Fluent API** en el método `OnModelCreating`.
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -814,7 +978,7 @@ Gracias a este diseño:
 El `PersonaController` es un controlador de entrada que hereda de `GenericControllerAsync<Persona>` e inyecta directamente el contrato genérico del servicio `IServiceAsync<Persona>` en su constructor, delegándolo al constructor base.
 
 #### Controlador: `PersonaController.cs`
-[PersonaController.cs](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/Controllers/PersonaController.cs)
+[PersonaController.cs](file:///c:/DesarrolloGIT/ProyectoBase/Backend/Controllers/PersonaController.cs)
 ```csharp
 using Microsoft.AspNetCore.Mvc;
 using ProyectoBase.Models;
@@ -831,7 +995,6 @@ namespace ProyectoBase.Controllers
         }
     }
 }
-```
 ```
 
 ---
@@ -859,6 +1022,7 @@ El proyecto está construido íntegramente sobre el ecosistema **.NET 10**. Los 
 | `Microsoft.EntityFrameworkCore.SqlServer` | `10.0.0-*` | **10.0.0** | Proveedor SQL Server (disponible como alternativa) |
 | `Microsoft.EntityFrameworkCore.Tools` | `10.0.0-*` | **10.0.0** | Herramientas CLI para migrations (`dotnet ef`) |
 | `Npgsql.EntityFrameworkCore.PostgreSQL` | `10.0.0-*` | **10.0.0** | Proveedor PostgreSQL activo |
+| `Swashbuckle.AspNetCore` | `10.1.7` | **10.1.7** | Generación de documentación OpenAPI / Swagger UI |
 
 > [!NOTE]
 > El wildcard `10.0.0-*` en las versiones garantiza que al ejecutar `dotnet restore`, se resolverán automáticamente los patches de seguridad y correcciones de bugs (ej: `10.0.1`, `10.0.2`) sin necesidad de actualizar manualmente el `.csproj`.
@@ -901,7 +1065,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 ### 12.2 Convención de Prefijo de Tablas (`PB_`)
 
-La base de datos `database01test` es compartida por múltiples aplicaciones. Para evitar colisiones de nombres, todas las tablas del proyecto utilizan el prefijo **`PB_`** (*ProyectoBase*):
+La base de datos puede ser compartida por múltiples aplicaciones (entorno local/on-premise) o exclusiva del proyecto (ej: base generada automáticamente en Render). En cualquier caso, todas las tablas del proyecto utilizan el prefijo **`PB_`** (*ProyectoBase*) para evitar colisiones de nombres:
 
 | Clase C# (dominio) | Tabla en PostgreSQL |
 | :--- | :--- |
@@ -928,16 +1092,21 @@ entity.ToTable("PB_NombreEntidad");
   → Exporta el SQL para registro histórico y auditoría
          │
          ▼
-[dotnet ef database update]
-  → Aplica la migration a PostgreSQL
+[dotnet ef database update]  ← entorno local
+  — O —
+[db.Database.Migrate() en Program.cs]  ← producción / Render
+  → Aplica automáticamente las migrations pendientes al iniciar la app
   → Registra en tabla __EFMigrationsHistory
 ```
+
+> [!TIP]
+> En producción (Render), el proyecto usa `db.Database.Migrate()` al iniciar, por lo que **no es necesario correr `dotnet ef database update` manualmente**. Al hacer deploy, si hay migrations pendientes, se aplican solas en el primer startup.
 
 ### 12.4 Historial de Migrations Aplicadas
 
 | # | Nombre | Archivo Script | Fecha | Descripción |
 | :---: | :--- | :--- | :---: | :--- |
-| 001 | `InitialCreate` | [001_InitialCreate.sql](file:///c:/DesarrolloGIT/foodtrucks/CodigoFuente/ProyectoBase/scripts/001_InitialCreate.sql) | 2026-05-20 | Creación tabla `PB_Persona` con índices únicos en `Dni` y `Email` |
+| 001 | `InitialCreate` | [001_InitialCreate.sql](file:///c:/DesarrolloGIT/ProyectoBase/Backend/scripts/001_InitialCreate.sql) | 2026-05-20 | Creación tabla `PB_Persona` con índices únicos en `Dni` y `Email` |
 
 ### 12.5 Schema Actual en PostgreSQL
 

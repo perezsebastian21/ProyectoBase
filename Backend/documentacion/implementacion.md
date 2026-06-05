@@ -214,3 +214,57 @@ POST /Account/Login  { "usuario": "seba", "password": "123" }
 
 ### Total de tests del proyecto: 28/28 ✅
 
+---
+
+## [2026-06-05] Fix — Migraciones seed no reconocidas por EF Core
+
+### Descripción
+Se detectó que los usuarios `seba`, `julian` y `juancruz` no existían en la base de datos de producción (Render), causando `401 Unauthorized` al intentar hacer login. La causa fue que las migraciones de seed anteriores (`SeedUsuarioSeba` y `SeedUsuariosIniciales`) se habían creado **manualmente** como archivos `.cs` sueltos, sin el archivo `.Designer.cs` que EF Core requiere para reconocer y ejecutar una migración.
+
+> [!CAUTION]
+> Las migraciones de EF Core **nunca deben crearse manualmente** como archivos `.cs` sueltos. Sin el `.Designer.cs`, EF Core las ignora completamente y no las ejecuta ni en `dotnet ef database update` ni en `db.Database.Migrate()` al iniciar la app.
+
+### Causa raíz
+
+```bash
+# EF solo veía estas migraciones (las manuales no aparecían):
+dotnet ef migrations list
+→ 20260520162536_InitialCreate
+→ 20260604183100_AddUsuarioEntity
+→ 20260605115341_RemoveIDPersonaFromUsuario
+# SeedUsuarioSeba y SeedUsuariosIniciales: AUSENTES
+```
+
+### Solución aplicada
+
+1. Se eliminaron los archivos manuales huérfanos:
+   - `20260604183200_SeedUsuarioSeba.cs`
+   - `20260605120900_SeedUsuariosIniciales.cs`
+
+2. Se creó la migración correctamente con el comando oficial:
+   ```bash
+   dotnet ef migrations add SeedUsuariosIniciales
+   ```
+   Esto generó tanto el `.cs` como el `.Designer.cs`.
+
+3. Se agregó el SQL de seed idempotente dentro del método `Up()` de la migración oficial.
+
+4. Se aplicó localmente con `dotnet ef database update` y se hizo push a `main`.
+
+### Archivos modificados
+
+| Archivo | Cambio |
+|---|---|
+| `Backend/Migrations/20260604183200_SeedUsuarioSeba.cs` | **Eliminado** (era huérfano sin Designer.cs) |
+| `Backend/Migrations/20260605120900_SeedUsuariosIniciales.cs` | **Eliminado** (era huérfano sin Designer.cs) |
+| `Backend/Migrations/20260605130045_SeedUsuariosIniciales.cs` | **Creado** — migración oficial con SQL de seed |
+| `Backend/Migrations/20260605130045_SeedUsuariosIniciales.Designer.cs` | **Creado** — archivo de snapshot requerido por EF |
+
+### Regla a seguir de ahora en adelante
+
+| ✅ Correcto | ❌ Incorrecto |
+|---|---|
+| `dotnet ef migrations add NombreMigracion` | Crear archivos `.cs` de migración manualmente |
+
+> _Seguir agregando secciones con el formato `[YYYY-MM-DD] Descripción del cambio` a medida que se implementen nuevas funcionalidades._
+

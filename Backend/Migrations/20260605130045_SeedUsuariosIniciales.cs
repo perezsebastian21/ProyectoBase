@@ -10,8 +10,6 @@ namespace ProyectoBase.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Inserta los usuarios del sistema. Cada INSERT solo se ejecuta
-            // si el username todavía no existe, evitando duplicados en re-runs.
             migrationBuilder.Sql(@"
                 INSERT INTO ""PB_Usuario"" (""Username"", ""Password"", ""Email"", ""Activo"")
                 SELECT 'seba', '123', 'seba@proyectobase.com', true
@@ -30,9 +28,7 @@ namespace ProyectoBase.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(@"
-                DELETE FROM ""PB_Usuario"" WHERE ""Username"" IN ('seba', 'julian', 'juancruz');
-            ");
+
         }
     }
 }

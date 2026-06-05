@@ -12,3 +12,5 @@
 /Backend/obj
 /Backend/bin
 /Backend/.vs
+/Backend/ProyectoBase.Tests/bin
+/Backend/ProyectoBase.Tests/obj

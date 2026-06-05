@@ -131,3 +131,86 @@ El push a `main` dispara el redeploy automático en Render. Al arrancar, la migr
 ---
 
 > _Seguir agregando secciones con el formato `[YYYY-MM-DD] Descripción del cambio` a medida que se implementen nuevas funcionalidades._
+
+---
+
+## [2026-06-05] Seed de usuarios iniciales
+
+### Descripción
+Se insertan los 3 usuarios del sistema mediante una migración de seed idempotente (no duplica si ya existen).
+
+### Migración generada
+
+| Migración | Descripción |
+|---|---|
+| `SeedUsuariosIniciales` | Inserta `seba`, `julian` y `juancruz` con password `123` si no existen |
+
+### Usuarios insertados
+
+| Username | Password | Email |
+|---|---|---|
+| `seba` | `123` | seba@proyectobase.com |
+| `julian` | `123` | julian@proyectobase.com |
+| `juancruz` | `123` | juancruz@proyectobase.com |
+
+---
+
+## [2026-06-05] `UsuarioService` + Login real en `AccountController`
+
+### Descripción
+Se implementa el servicio de autenticación de usuarios del sistema. El `AccountController` ahora valida credenciales contra la base de datos (en lugar de generar un token sin validación). Se corrigieron además errores de referencias a un proyecto externo (`rsFoodtrucks`) que impedían compilar.
+
+### Archivos creados
+
+| Archivo | Descripción |
+|---|---|
+| `Backend/Services/UsuarioService/IUsuarioService.cs` | Interfaz con el método `ValidarCredenciales(username, password)` |
+| `Backend/Services/UsuarioService/UsuarioService.cs` | Implementación usando `ApplicationDbContext` con consulta LINQ sobre `PB_Usuario` |
+| `Backend/ProyectoBase.Tests/Services/UsuarioServiceTests.cs` | Tests del servicio usando EF Core InMemory |
+
+### Archivos modificados
+
+| Archivo | Cambio |
+|---|---|
+| `Backend/Controllers/AccountController.cs` | Reescrito: inyecta `IUsuarioService`, método `async`, valida credenciales, retorna `401` si son inválidas |
+| `Backend/Program.cs` | Registrado `IUsuarioService` / `UsuarioService` en el contenedor de DI |
+| `Backend/ProyectoBase.Tests/Controllers/AccountControllerTests.cs` | Reescrito para cubrir el nuevo flujo de login con validación real |
+| `Backend/ProyectoBase.Tests/ProyectoBase.Tests.csproj` | Agregado paquete `Microsoft.EntityFrameworkCore.InMemory` para tests del servicio |
+
+### Lógica del login
+
+```
+POST /Account/Login  { "usuario": "seba", "password": "123" }
+  → UsuarioService.ValidarCredenciales("seba", "123")
+      → SELECT * FROM PB_Usuario WHERE Username = 'seba' AND Password = '123' AND Activo = true
+  → Si existe: genera JWT → 200 OK { token, expiration, username }
+  → Si no existe: 401 Unauthorized { message: "Usuario o contraseña incorrectos." }
+```
+
+### Tests unitarios agregados
+
+**`AccountControllerLoginTests`** (7 tests — Moq sobre `IUsuarioService` e `ITokenService`)
+
+| Test | Descripción |
+|---|---|
+| `Login_CredencialesValidas_DebeRetornar200ConToken` | HTTP 200 con token en el body |
+| `Login_CredencialesInvalidas_DebeRetornar401` | HTTP 401 si la password es incorrecta |
+| `Login_UsuarioInexistente_DebeRetornar401` | HTTP 401 si el username no existe |
+| `Login_CredencialesValidas_BodyDebeContenerElToken` | El token del servicio llega al body |
+| `Login_CredencialesValidas_BodyDebeContenerUsername` | El username está presente en el body |
+| `Login_CredencialesValidas_DebeGenerarTokenConUsernameDeDB` | El token se genera con el username de la BD |
+| `Login_CredencialesInvalidas_NoDebeGenerarToken` | `GenerateAdminToken` no se llama si las credenciales son inválidas |
+
+**`UsuarioServiceTests`** (6 tests — EF Core InMemory)
+
+| Test | Descripción |
+|---|---|
+| `ValidarCredenciales_UsuarioActivoYPasswordCorrecta_RetornaUsuario` | Retorna el usuario cuando las credenciales son válidas |
+| `ValidarCredenciales_PasswordIncorrecta_RetornaNull` | Retorna `null` si la password no coincide |
+| `ValidarCredenciales_UsuarioInexistente_RetornaNull` | Retorna `null` si el username no existe |
+| `ValidarCredenciales_UsuarioInactivo_RetornaNull` | Usuarios con `Activo = false` no pueden autenticarse |
+| `ValidarCredenciales_UsernameCaseDiferente_RetornaNull` | Comparación case-sensitive (`seba` ≠ `SEBA`) |
+| `ValidarCredenciales_SegundoUsuarioValido_RetornaUsuarioCorrecto` | Múltiples usuarios del sistema funcionan correctamente |
+
+### Total de tests del proyecto: 28/28 ✅
+

@@ -4,6 +4,7 @@ using ProyectoBase.DataAccess.Servicios;
 using ProyectoBase.Models;
 using ProyectoBase.Services.GenericService;
 using ProyectoBase.Services.TokenService;
+using ProyectoBase.Services.UsuarioService;
 using ProyectoBase.Utility;
 
 // 1. Habilitar interruptor de compatibilidad de fechas para PostgreSQL
@@ -23,6 +24,9 @@ builder.Services.AddScoped(typeof(IServiceAsync<>), typeof(ServiceAsync<>));
 
 // 5. Registrar TokenService
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+// 6. Registrar UsuarioService
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 // 5. Configurar Controladores con NewtonsoftJson
 builder.Services.AddControllers()

@@ -9,8 +9,8 @@
 
 # Mac
 .DS_Store
-/Backend/obj
 /Backend/bin
+/Backend/obj
 /Backend/.vs
 /Backend/ProyectoBase.Tests/bin
 /Backend/ProyectoBase.Tests/obj

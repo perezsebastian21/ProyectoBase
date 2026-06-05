@@ -84,11 +84,6 @@ namespace ProyectoBase.Models
                 entity.HasIndex(e => e.Email)
                       .IsUnique();
 
-                // Relación con Persona
-                entity.HasOne(e => e.Persona)
-                      .WithMany()
-                      .HasForeignKey(e => e.IDPersona)
-                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

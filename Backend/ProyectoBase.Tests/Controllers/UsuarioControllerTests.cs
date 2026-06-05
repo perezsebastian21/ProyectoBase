@@ -21,8 +21,7 @@ namespace ProyectoBase.Tests.Controllers
             Username = "jperez",
             Password = "hashedpass123",
             Email = "juan.perez@example.com",
-            Activo = true,
-            IDPersona = 1
+            Activo = true
         };
 
         public UsuarioControllerTests()
@@ -83,8 +82,7 @@ namespace ProyectoBase.Tests.Controllers
             {
                 Username = "nuevo_user",
                 Password = "pass123",
-                Email = "nuevo@example.com",
-                IDPersona = 2
+                Email = "nuevo@example.com"
             };
             var creado = new Usuario
             {
@@ -92,7 +90,6 @@ namespace ProyectoBase.Tests.Controllers
                 Username = "nuevo_user",
                 Password = "pass123",
                 Email = "nuevo@example.com",
-                IDPersona = 2,
                 Activo = true
             };
             _mockService.Setup(s => s.Create(nuevo)).ReturnsAsync(creado);
@@ -121,7 +118,6 @@ namespace ProyectoBase.Tests.Controllers
                 Username = "jperez_mod",
                 Password = "newpass",
                 Email = "jperez_mod@example.com",
-                IDPersona = 1,
                 Activo = true
             };
             _mockService.Setup(s => s.Update(actualizado)).ReturnsAsync(actualizado);

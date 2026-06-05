@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ProyectoBase.Models;
 using ProyectoBase.Services.TokenService;
+using ProyectoBase.Services.UsuarioService;
+using System;
+using System.Threading.Tasks;
 
 namespace ProyectoBase.Controllers
 {
@@ -9,26 +12,33 @@ namespace ProyectoBase.Controllers
     public class AccountController : ControllerBase
     {
         private readonly ITokenService _tokenService;
+        private readonly IUsuarioService _usuarioService;
 
-        public AccountController(ITokenService tokenService)
+        public AccountController(ITokenService tokenService, IUsuarioService usuarioService)
         {
             _tokenService = tokenService;
+            _usuarioService = usuarioService;
         }
 
         /// <summary>
-        /// Genera un JWT para el usuario indicado.
-        /// Por el momento no valida credenciales contra la base de datos.
-        /// TODO: implementar validación real (DB / LDAP) cuando corresponda.
+        /// Valida las credenciales del usuario contra la base de datos y,
+        /// si son correctas, devuelve un JWT de acceso.
         /// </summary>
         [HttpPost("Login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            string token = _tokenService.GenerateAdminToken(request.Usuario);
+            var usuario = await _usuarioService.ValidarCredenciales(request.Usuario, request.Password);
+
+            if (usuario == null)
+                return Unauthorized(new { message = "Usuario o contraseña incorrectos." });
+
+            string token = _tokenService.GenerateAdminToken(usuario.Username);
 
             return Ok(new ServiceResponse<object>(new
             {
-                token,
-                expiration = DateTime.UtcNow.AddHours(1)
+                token = token,
+                expiration = DateTime.UtcNow.AddHours(1),
+                username = usuario.Username
             }));
         }
     }

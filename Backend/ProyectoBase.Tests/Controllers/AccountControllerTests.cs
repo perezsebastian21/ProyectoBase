@@ -4,125 +4,189 @@ using Moq;
 using ProyectoBase.Controllers;
 using ProyectoBase.Models;
 using ProyectoBase.Services.TokenService;
+using ProyectoBase.Services.UsuarioService;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ProyectoBase.Tests.Controllers
 {
-    public class AccountControllerTests
+    public class AccountControllerLoginTests
     {
         private readonly Mock<ITokenService> _mockTokenService;
+        private readonly Mock<IUsuarioService> _mockUsuarioService;
         private readonly AccountController _controller;
 
-        public AccountControllerTests()
+        private readonly Usuario _usuarioValido = new Usuario
+        {
+            IDUsuario = 1,
+            Username = "seba",
+            Password = "123",
+            Email = "seba@proyectobase.com",
+            Activo = true
+        };
+
+        public AccountControllerLoginTests()
         {
             _mockTokenService = new Mock<ITokenService>();
-            _controller = new AccountController(_mockTokenService.Object);
+            _mockUsuarioService = new Mock<IUsuarioService>();
+            _controller = new AccountController(_mockTokenService.Object, _mockUsuarioService.Object);
         }
 
         /// <summary>
-        /// El login exitoso debe retornar HTTP 200 OK.
+        /// Credenciales válidas → HTTP 200 con token en el body.
         /// </summary>
         [Fact]
-        public void Login_ShouldReturn200OK()
+        public async Task Login_CredencialesValidas_DebeRetornar200ConToken()
         {
             // Arrange
-            var request = new LoginRequest { Usuario = "testuser", Password = "testpass" };
+            var request = new LoginRequest { Usuario = "seba", Password = "123" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales("seba", "123"))
+                .ReturnsAsync(_usuarioValido);
             _mockTokenService
-                .Setup(s => s.GenerateAdminToken(request.Usuario))
-                .Returns("fake-jwt-token");
+                .Setup(s => s.GenerateAdminToken("seba"))
+                .Returns("jwt-token-valido");
 
             // Act
-            var result = _controller.Login(request);
+            var result = await _controller.Login(request);
 
             // Assert
-            result.Should().BeOfType<OkObjectResult>()
-                .Which.StatusCode.Should().Be(200);
+            var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+            ok.StatusCode.Should().Be(200);
+            var body = ok.Value as ServiceResponse<object>;
+            body.Should().NotBeNull();
+            body.Success.Should().BeTrue();
         }
 
         /// <summary>
-        /// El controller debe delegar la generación del token al TokenService
-        /// pasándole exactamente el usuario recibido en el request.
+        /// Credenciales inválidas → HTTP 401 Unauthorized.
         /// </summary>
         [Fact]
-        public void Login_ShouldCallGenerateAdminToken_WithCorrectUsername()
+        public async Task Login_CredencialesInvalidas_DebeRetornar401()
         {
             // Arrange
-            var request = new LoginRequest { Usuario = "sebastian", Password = "cualquier" };
-            _mockTokenService
-                .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
-                .Returns("token");
+            var request = new LoginRequest { Usuario = "seba", Password = "wrongpass" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales("seba", "wrongpass"))
+                .ReturnsAsync((Usuario)null);
 
             // Act
-            _controller.Login(request);
+            var result = await _controller.Login(request);
 
             // Assert
-            _mockTokenService.Verify(s => s.GenerateAdminToken("sebastian"), Times.Once);
+            result.Should().BeOfType<UnauthorizedObjectResult>()
+                .Which.StatusCode.Should().Be(401);
         }
 
         /// <summary>
-        /// La respuesta debe contener el token generado por el servicio.
+        /// Usuario inexistente → HTTP 401 Unauthorized.
         /// </summary>
         [Fact]
-        public void Login_ResponseBody_ShouldContainTokenFromService()
+        public async Task Login_UsuarioInexistente_DebeRetornar401()
         {
             // Arrange
-            var expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature";
-            var request = new LoginRequest { Usuario = "user", Password = "pass" };
+            var request = new LoginRequest { Usuario = "noexiste", Password = "123" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales("noexiste", "123"))
+                .ReturnsAsync((Usuario)null);
+
+            // Act
+            var result = await _controller.Login(request);
+
+            // Assert
+            result.Should().BeOfType<UnauthorizedObjectResult>();
+        }
+
+        /// <summary>
+        /// Login exitoso → el token generado por el servicio llega al body de la respuesta.
+        /// </summary>
+        [Fact]
+        public async Task Login_CredencialesValidas_BodyDebeContenerElToken()
+        {
+            // Arrange
+            var expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature";
+            var request = new LoginRequest { Usuario = "seba", Password = "123" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(_usuarioValido);
             _mockTokenService
                 .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
                 .Returns(expectedToken);
 
             // Act
-            var result = _controller.Login(request);
+            var result = await _controller.Login(request);
 
             // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var body = okResult.Value as ServiceResponse<object>;
-            body.Should().NotBeNull();
-            body.Success.Should().BeTrue();
-            body.ErrorMessage.Should().BeNull();
-            // Verificar que el token del servicio llega al body
+            var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+            var body = ok.Value as ServiceResponse<object>;
             var dataJson = Newtonsoft.Json.JsonConvert.SerializeObject(body.Data);
             dataJson.Should().Contain(expectedToken);
         }
 
         /// <summary>
-        /// Estado actual: el login no valida credenciales — debe funcionar
-        /// incluso con password vacío (login simple para interacción con frontend).
+        /// Login exitoso → el body incluye el username del usuario autenticado.
         /// </summary>
         [Fact]
-        public void Login_WithEmptyPassword_ShouldStillReturn200()
+        public async Task Login_CredencialesValidas_BodyDebeContenerUsername()
         {
             // Arrange
-            var request = new LoginRequest { Usuario = "user", Password = "" };
+            var request = new LoginRequest { Usuario = "seba", Password = "123" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(_usuarioValido);
             _mockTokenService
                 .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
                 .Returns("token");
 
             // Act
-            var result = _controller.Login(request);
+            var result = await _controller.Login(request);
 
             // Assert
-            result.Should().BeOfType<OkObjectResult>();
+            var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+            var body = ok.Value as ServiceResponse<object>;
+            var dataJson = Newtonsoft.Json.JsonConvert.SerializeObject(body.Data);
+            dataJson.Should().Contain("seba");
         }
 
         /// <summary>
-        /// El TokenService debe ser llamado exactamente una vez por request.
+        /// Login exitoso → GenerateAdminToken se llama con el Username del usuario encontrado en BD.
         /// </summary>
         [Fact]
-        public void Login_ShouldCallTokenService_ExactlyOnce()
+        public async Task Login_CredencialesValidas_DebeGenerarTokenConUsernameDeDB()
         {
             // Arrange
-            var request = new LoginRequest { Usuario = "u", Password = "p" };
+            var request = new LoginRequest { Usuario = "seba", Password = "123" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales("seba", "123"))
+                .ReturnsAsync(_usuarioValido);
             _mockTokenService
                 .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
                 .Returns("token");
 
             // Act
-            _controller.Login(request);
+            await _controller.Login(request);
+
+            // Assert — el token se genera con el username que viene de la BD, no del request
+            _mockTokenService.Verify(s => s.GenerateAdminToken("seba"), Times.Once);
+        }
+
+        /// <summary>
+        /// Credenciales inválidas → GenerateAdminToken no debe ser llamado.
+        /// </summary>
+        [Fact]
+        public async Task Login_CredencialesInvalidas_NoDebeGenerarToken()
+        {
+            // Arrange
+            var request = new LoginRequest { Usuario = "seba", Password = "wrong" };
+            _mockUsuarioService
+                .Setup(s => s.ValidarCredenciales(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync((Usuario)null);
+
+            // Act
+            await _controller.Login(request);
 
             // Assert
-            _mockTokenService.Verify(s => s.GenerateAdminToken(It.IsAny<string>()), Times.Once);
+            _mockTokenService.Verify(s => s.GenerateAdminToken(It.IsAny<string>()), Times.Never);
         }
     }
 }

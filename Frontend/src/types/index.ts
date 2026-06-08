@@ -40,7 +40,7 @@ export interface ApiError {
 // ============================================================
 
 /** Roles de usuario en la aplicación */
-export type UserRole = 'admin' | 'resident' | 'security' | 'maintenance';
+export type UserRole = 'superadmin' | 'admin' | 'resident' | 'security' | 'maintenance';
 
 /** Información del usuario autenticado */
 export interface User {

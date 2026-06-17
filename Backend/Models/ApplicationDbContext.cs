@@ -11,10 +11,36 @@ namespace ProyectoBase.Models
 
         public DbSet<Persona> Personas { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Consorcio> Consorcios { get; set; }
+        public DbSet<Complejo> Complejos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Consorcio>(entity =>
+            {
+                entity.ToTable("PB_Consorcio");
+                entity.HasKey(x => x.IDConsorcio);
+                entity.Property(x => x.Cuit).IsRequired().HasMaxLength(11);
+                entity.HasIndex(x => x.Cuit).IsUnique();
+                entity.Property(x => x.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.Email).IsRequired().HasMaxLength(100);
+                entity.HasIndex(x => x.Email).IsUnique();
+                entity.Property(x => x.Telefono).HasMaxLength(20);
+            });
+
+            modelBuilder.Entity<Complejo>(entity =>
+            {
+                entity.ToTable("PB_Complejo");
+                entity.HasKey(x => x.IDComplejo);
+                entity.Property(x => x.Nombre).IsRequired().HasMaxLength(100);
+                entity.HasIndex(x => new { x.IDConsorcio, x.Nombre }).IsUnique();
+                entity.Property(x => x.Tipo).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.Direccion).IsRequired().HasMaxLength(200);
+                entity.HasOne(x => x.Consorcio).WithMany()
+                      .HasForeignKey(x => x.IDConsorcio).OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<Persona>(entity =>
             {

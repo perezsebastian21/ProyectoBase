@@ -268,3 +268,30 @@ dotnet ef migrations list
 
 > _Seguir agregando secciones con el formato `[YYYY-MM-DD] Descripción del cambio` a medida que se implementen nuevas funcionalidades._
 
+---
+
+## [2026-06-17] Entidades `Consorcio` y `Complejo`
+
+### Descripción
+Se agregaron las entidades `Consorcio` y `Complejo` correspondientes al módulo de Onboarding (CU-08) tal como lo indica la especificación `specs (2)(2)(1).md`. Se definieron utilizando clases POCO sin `DataAnnotations` y configurando el mapeo estricto a través de Fluent API en `ApplicationDbContext`.
+
+### Archivos creados
+
+| Archivo | Descripción |
+|---|---|
+| `Backend/Models/Consorcio.cs` | Clase de entidad que representa al consorcio administrador. |
+| `Backend/Models/Complejo.cs` | Clase de entidad que representa el edificio o barrio administrado. |
+
+### Archivos modificados
+
+| Archivo | Cambio |
+|---|---|
+| `Backend/Models/ApplicationDbContext.cs` | Agregado `DbSet` de ambas entidades y mapeo en `OnModelCreating` (Tablas: `PB_Consorcio`, `PB_Complejo`). Restricciones de longitud, índices únicos y Foreign Key `DeleteBehavior.Restrict`. |
+
+### Migración de base de datos
+Se generó y ejecutó exitosamente la migración:
+- Nombre: `CU08_ConsorcioComplejoDomain`
+- Tablas creadas: `PB_Consorcio`, `PB_Complejo`
+- Se generó un script SQL idempotente en `scripts/002_CU08_ConsorcioComplejoDomain.sql`.
+
+> _Seguir agregando secciones con el formato `[YYYY-MM-DD] Descripción del cambio` a medida que se implementen nuevas funcionalidades._

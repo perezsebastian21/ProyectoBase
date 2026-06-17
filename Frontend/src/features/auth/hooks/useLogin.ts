@@ -69,10 +69,18 @@ export function useLogin() {
         // Guardar token en cookie (accesible por el middleware de Next.js)
         // maxAge = 7 días en segundos; path=/ para que aplique a toda la app
         const token = response.data.token;
+        const expiration = response.data.expiration;
+        const username = response.data.username;
+        
         document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_username', username || '');
+          localStorage.setItem('auth_expiration', expiration || '');
+        }
 
-        // Redirigir a la URL original (si venía de una ruta protegida) o al dashboard
-        const redirectTo = searchParams.get('redirect') || '/dashboard';
+        // Redirigir a la URL original (si venía de una ruta protegida) o a la raíz (/)
+        const redirectTo = searchParams.get('redirect') || '/';
         router.push(redirectTo);
       } catch (err) {
         const message =

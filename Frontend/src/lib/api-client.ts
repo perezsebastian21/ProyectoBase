@@ -38,6 +38,17 @@ export async function apiClient<T>(
     ...(options.headers || {}),
   });
 
+  // Obtener token de la cookie si estamos en el cliente
+  let token: string | undefined;
+  if (typeof window !== 'undefined') {
+    const match = document.cookie.match(/(^|;)\s*auth_token\s*=\s*([^;]+)/);
+    token = match ? match[2] : undefined;
+  }
+
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
   const config: RequestInit = {
     ...options,
     headers,
@@ -53,7 +64,7 @@ export async function apiClient<T>(
 
     let data: unknown;
     const contentType = response.headers.get('content-type');
-    
+
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
     } else {
@@ -80,7 +91,7 @@ export async function apiClient<T>(
     if (error instanceof ApiError) {
       throw error;
     }
-    
+
     // Capturar errores de red u otros fallos de fetch
     const errorMessage = error instanceof Error ? error.message : 'Error de conexión con el servidor';
     throw new ApiError(0, 'Network Error', errorMessage);

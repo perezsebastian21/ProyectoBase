@@ -18,7 +18,7 @@ export const ROUTES = {
 
   // Main
   HOME: '/',
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/',
 
   // Amenities
   AMENITIES: '/amenities',
@@ -37,4 +37,8 @@ export const ROUTES = {
   // Settings
   SETTINGS: '/settings',
   PROFILE: '/profile',
+
+  // Administration (Consorcios / Complejos)
+  CONSORCIOS: '/dashboard/consorcios',
+  COMPLEJOS: '/dashboard/complejos',
 } as const;

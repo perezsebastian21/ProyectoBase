@@ -30,10 +30,10 @@ export default function DashboardActionCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative p-5 rounded-2xl border border-brand-surface-bright/20 bg-brand-surface-container/60 hover:bg-brand-surface-bright/15 hover:border-brand-primary/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] transition-all duration-300 backdrop-blur-md cursor-pointer select-none`}
+      className={`group relative p-5 rounded-2xl border border-brand-surface-bright/20 bg-brand-surface dark:bg-brand-surface-container/40 hover:bg-blue-50/40 dark:hover:bg-brand-surface-bright/10 hover:border-brand-primary/30 shadow-sm hover:shadow-[0_12px_30px_rgba(37,99,235,0.06)] dark:hover:shadow-none transition-all duration-300 backdrop-blur-md cursor-pointer select-none`}
     >
       {/* Glow gradient border reflection */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-primary/0 via-brand-primary/0 to-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-primary/0 via-brand-primary/0 to-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="flex items-start justify-between mb-4">
         {/* Category & Status */}

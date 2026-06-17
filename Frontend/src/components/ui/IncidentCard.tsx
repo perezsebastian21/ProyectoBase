@@ -41,7 +41,7 @@ export default function IncidentCard({
   return (
     <div
       onClick={onClick}
-      className="group relative p-5 rounded-2xl border border-brand-surface-bright/20 bg-brand-surface-container/60 hover:bg-brand-surface-bright/15 hover:border-brand-primary/30 transition-all duration-300 backdrop-blur-md cursor-pointer shadow-md select-none"
+      className="group relative p-5 rounded-2xl border border-brand-surface-bright/20 bg-brand-surface dark:bg-brand-surface-container/40 hover:bg-blue-50/40 dark:hover:bg-brand-surface-bright/10 hover:border-brand-primary/30 shadow-sm hover:shadow-[0_12px_30px_rgba(37,99,235,0.06)] dark:hover:shadow-none transition-all duration-300 backdrop-blur-md cursor-pointer select-none"
     >
       <div className="flex items-start justify-between mb-3">
         {/* Category & Title */}

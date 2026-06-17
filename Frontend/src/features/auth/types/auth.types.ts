@@ -13,6 +13,7 @@ export interface LoginResponse {
   data: {
     token: string;
     expiration: string;
+    username?: string;
   };
   success: boolean;
   errorMessage: string | null;

@@ -47,9 +47,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. Si hay token y está en una ruta pública (login/register) → redirigir a /dashboard
+  // 4. Si hay token y está en una ruta pública (login/register) → redirigir a /
   if (token && isPublicRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();

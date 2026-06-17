@@ -46,4 +46,24 @@ export const API_ENDPOINTS = {
     CREATE: '/api/reservations',
     CANCEL: (id: string) => `/api/reservations/${id}/cancel` as const,
   },
+
+  // Consorcios
+  CONSORCIO: {
+    GET_ALL: '/consorcio/getall',
+    GET_BY_ID: (id: number) => `/consorcio/GetById?id=${id}` as const,
+    FIND_QP: '/consorcio/FindQP',
+    CREATE: '/consorcio',
+    UPDATE: '/consorcio',
+    DELETE: (id: number) => `/consorcio/${id}` as const,
+  },
+
+  // Complejos
+  COMPLEJO: {
+    GET_ALL: '/complejo/getall',
+    GET_BY_ID: (id: number) => `/complejo/GetById?id=${id}` as const,
+    FIND_QP: '/complejo/FindQP',
+    CREATE: '/complejo',
+    UPDATE: '/complejo',
+    DELETE: (id: number) => `/complejo/${id}` as const,
+  },
 } as const;

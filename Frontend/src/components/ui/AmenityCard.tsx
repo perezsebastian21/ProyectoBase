@@ -23,7 +23,7 @@ export default function AmenityCard({
   onBookClick,
 }: AmenityCardProps) {
   return (
-    <div className="group relative w-full h-[360px] rounded-2xl overflow-hidden border border-brand-surface-bright/20 bg-brand-surface-container shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition-all duration-300 hover:shadow-[0_15px_40px_rgba(0,0,0,0.7)] hover:border-brand-primary/30">
+    <div className="group relative w-full h-[360px] rounded-2xl overflow-hidden border border-brand-surface-bright/20 bg-brand-surface-container shadow-[0_8px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_30px_rgba(37,99,235,0.08)] transition-all duration-300 hover:border-brand-primary/30">
       {/* Background Image with Zoom effect */}
       <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"

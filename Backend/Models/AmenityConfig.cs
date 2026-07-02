@@ -13,6 +13,7 @@ namespace ProyectoBase.Models
         public decimal Tarifa { get; set; }
         public int LimiteReservasMesUnidad { get; set; }
         public bool RequiereAprobacion { get; set; }
+        
         public Amenity Amenity { get; set; }
     }
 }

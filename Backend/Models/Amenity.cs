@@ -1,5 +1,3 @@
-using System;
-
 namespace ProyectoBase.Models
 {
     public class Amenity
@@ -9,6 +7,7 @@ namespace ProyectoBase.Models
         public string Nombre { get; set; }
         public int Capacidad { get; set; }
         public string Estado { get; set; }
+        
         public Complejo Complejo { get; set; }
         public AmenityConfig Config { get; set; }
     }

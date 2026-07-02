@@ -1,5 +1,3 @@
-using System;
-
 namespace ProyectoBase.Models
 {
     public class UnidadHabitacional
@@ -11,6 +9,7 @@ namespace ProyectoBase.Models
         public decimal SaldoActual { get; set; }
         public string EstadoUnidad { get; set; }
         public int ContadorInfracciones { get; set; }
+        
         public Complejo Complejo { get; set; }
     }
 }

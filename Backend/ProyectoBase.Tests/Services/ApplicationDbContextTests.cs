@@ -64,5 +64,35 @@ namespace ProyectoBase.Tests.Services
             Assert.NotNull(savedAmenity.Config);
             Assert.Equal(60, savedAmenity.Config.DuracionBloqueMinutos);
         }
+        [Fact]
+        public async Task CanSave_Inquilino_And_Invitado()
+        {
+            // Arrange
+            var context = GetDbContext();
+            
+            var consorcio = new Consorcio { Cuit = "33333333333", Nombre = "Test Consorcio 3", Email = "test3@consorcio.com" };
+            var complejo = new Complejo { Consorcio = consorcio, Nombre = "Test Complejo 3", Tipo = "EDIFICIO", Direccion = "789 Calle" };
+            var unidad = new UnidadHabitacional { Complejo = complejo, Identificador = "2B", EstadoUnidad = "ACTIVA" };
+            
+            var inquilino = new Inquilino { UnidadHabitacional = unidad, Nombre = "Juan", Apellido = "Perez", Dni = "12345678", Email = "juan@test.com" };
+            var invitado = new Invitado { UnidadHabitacional = unidad, NombreCompleto = "Pedro Gomez", Dni = "87654321", FechaExpiracion = new DateOnly(2027, 1, 1) };
+
+            // Act
+            context.Consorcios.Add(consorcio);
+            context.Complejos.Add(complejo);
+            context.UnidadesHabitacionales.Add(unidad);
+            context.Inquilinos.Add(inquilino);
+            context.Invitados.Add(invitado);
+            await context.SaveChangesAsync();
+
+            // Assert
+            var savedInquilino = await context.Inquilinos.FirstOrDefaultAsync();
+            var savedInvitado = await context.Invitados.FirstOrDefaultAsync();
+            
+            Assert.NotNull(savedInquilino);
+            Assert.Equal("Juan", savedInquilino.Nombre);
+            Assert.NotNull(savedInvitado);
+            Assert.Equal("Pedro Gomez", savedInvitado.NombreCompleto);
+        }
     }
 }

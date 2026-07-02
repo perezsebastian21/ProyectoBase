@@ -16,6 +16,8 @@ namespace ProyectoBase.Models
         public DbSet<UnidadHabitacional> UnidadesHabitacionales { get; set; }
         public DbSet<Amenity> Amenities { get; set; }
         public DbSet<AmenityConfig> AmenityConfigs { get; set; }
+        public DbSet<Inquilino> Inquilinos { get; set; }
+        public DbSet<Invitado> Invitados { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -82,6 +84,33 @@ namespace ProyectoBase.Models
                 entity.Property(x => x.RequiereAprobacion).HasDefaultValue(false);
                 entity.HasOne(x => x.Amenity).WithOne(a => a.Config)
                       .HasForeignKey<AmenityConfig>(x => x.IDAmenity).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Inquilino>(entity =>
+            {
+                entity.ToTable("PB_Inquilino");
+                entity.HasKey(x => x.IDInquilino);
+                entity.Property(x => x.Nombre).IsRequired().HasMaxLength(150);
+                entity.Property(x => x.Apellido).IsRequired().HasMaxLength(150);
+                entity.Property(x => x.Dni).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.Email).HasMaxLength(250);
+                entity.Property(x => x.Celular).HasMaxLength(50);
+                entity.Property(x => x.Activo).HasDefaultValue(true);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany()
+                      .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Invitado>(entity =>
+            {
+                entity.ToTable("PB_Invitado");
+                entity.HasKey(x => x.IDInvitado);
+                entity.Property(x => x.NombreCompleto).IsRequired().HasMaxLength(200);
+                entity.Property(x => x.Dni).IsRequired().HasMaxLength(20);
+                entity.HasIndex(x => new { x.IDUnidadHabitacional, x.Dni }).IsUnique();
+                entity.Property(x => x.FechaExpiracion).IsRequired();
+                entity.Property(x => x.Patente).HasMaxLength(20);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany()
+                      .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Persona>(entity =>

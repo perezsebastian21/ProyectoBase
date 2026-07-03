@@ -94,5 +94,43 @@ namespace ProyectoBase.Tests.Services
             Assert.NotNull(savedInvitado);
             Assert.Equal("Pedro Gomez", savedInvitado.NombreCompleto);
         }
+        [Fact]
+        public async Task CanSave_TransactionalEntities_Reserva_Incidencia_Lista_Mantenimiento()
+        {
+            // Arrange
+            var context = GetDbContext();
+            
+            var consorcio = new Consorcio { Cuit = "44444444444", Nombre = "Test Consorcio 4", Email = "test4@consorcio.com" };
+            var complejo = new Complejo { Consorcio = consorcio, Nombre = "Test Complejo 4", Tipo = "EDIFICIO", Direccion = "1011 Calle" };
+            var unidad = new UnidadHabitacional { Complejo = complejo, Identificador = "3C", EstadoUnidad = "ACTIVA" };
+            var amenity = new Amenity { Complejo = complejo, Nombre = "Quincho", Capacidad = 20, Estado = "DISPONIBLE" };
+            
+            var reserva = new Reserva { Amenity = amenity, UnidadHabitacional = unidad, FechaUso = new DateOnly(2026, 10, 10), HoraInicio = new TimeOnly(12, 0), HoraFin = new TimeOnly(14, 0), Estado = "CONFIRMADA", FechaSolicitud = DateTime.UtcNow };
+            var incidencia = new Incidencia { Amenity = amenity, UnidadHabitacional = unidad, Descripcion = "Foco roto", Estado = "ABIERTA", FechaReporte = DateTime.UtcNow };
+            var listaEspera = new ListaEspera { Amenity = amenity, UnidadHabitacional = unidad, FechaUso = new DateOnly(2026, 10, 10), HoraInicio = new TimeOnly(12, 0), Posicion = 1, FechaInscripcion = DateTime.UtcNow, Estado = "ESPERANDO" };
+            var mantenimiento = new MantenimientoProgramado { Amenity = amenity, Descripcion = "Pintura", Recurrencia = "SEMANAL", HoraInicio = new TimeOnly(8, 0), HoraFin = new TimeOnly(12, 0), FechaInicio = new DateOnly(2026, 11, 1), FechaFin = new DateOnly(2026, 11, 30) };
+
+            // Act
+            context.Consorcios.Add(consorcio);
+            context.Complejos.Add(complejo);
+            context.UnidadesHabitacionales.Add(unidad);
+            context.Amenities.Add(amenity);
+            
+            context.Reservas.Add(reserva);
+            context.Incidencias.Add(incidencia);
+            context.ListasEspera.Add(listaEspera);
+            context.MantenimientosProgramados.Add(mantenimiento);
+            
+            await context.SaveChangesAsync();
+
+            // Assert
+            var savedReserva = await context.Reservas.FirstOrDefaultAsync();
+            var savedIncidencia = await context.Incidencias.FirstOrDefaultAsync();
+            
+            Assert.NotNull(savedReserva);
+            Assert.Equal("CONFIRMADA", savedReserva.Estado);
+            Assert.NotNull(savedIncidencia);
+            Assert.Equal("Foco roto", savedIncidencia.Descripcion);
+        }
     }
 }

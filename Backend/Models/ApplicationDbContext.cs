@@ -18,6 +18,10 @@ namespace ProyectoBase.Models
         public DbSet<AmenityConfig> AmenityConfigs { get; set; }
         public DbSet<Inquilino> Inquilinos { get; set; }
         public DbSet<Invitado> Invitados { get; set; }
+        public DbSet<Reserva> Reservas { get; set; }
+        public DbSet<Incidencia> Incidencias { get; set; }
+        public DbSet<ListaEspera> ListasEspera { get; set; }
+        public DbSet<MantenimientoProgramado> MantenimientosProgramados { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -111,6 +115,67 @@ namespace ProyectoBase.Models
                 entity.Property(x => x.Patente).HasMaxLength(20);
                 entity.HasOne(x => x.UnidadHabitacional).WithMany()
                       .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Reserva>(entity =>
+            {
+                entity.ToTable("PB_Reserva");
+                entity.HasKey(x => x.IDReserva);
+                entity.Property(x => x.FechaUso).IsRequired().HasColumnType("date");
+                entity.Property(x => x.HoraInicio).IsRequired().HasColumnType("time");
+                entity.Property(x => x.HoraFin).IsRequired().HasColumnType("time");
+                entity.Property(x => x.CantidadInvitados).HasDefaultValue(0);
+                entity.Property(x => x.Estado).IsRequired().HasMaxLength(25);
+                entity.Property(x => x.FechaSolicitud).IsRequired().HasColumnType("timestamptz");
+                entity.HasOne(x => x.Amenity).WithMany()
+                      .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany()
+                      .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Incidencia>(entity =>
+            {
+                entity.ToTable("PB_Incidencia");
+                entity.HasKey(x => x.IDIncidencia);
+                entity.Property(x => x.Descripcion).IsRequired().HasMaxLength(500);
+                entity.Property(x => x.Estado).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.DetalleResolucion).HasMaxLength(500);
+                entity.Property(x => x.CostoEstimado).HasColumnType("decimal(10,2)");
+                entity.Property(x => x.FechaReporte).IsRequired().HasColumnType("timestamptz");
+                entity.Property(x => x.FechaResolucion).HasColumnType("timestamptz");
+                entity.HasOne(x => x.Amenity).WithMany()
+                      .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany()
+                      .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ListaEspera>(entity =>
+            {
+                entity.ToTable("PB_ListaEspera");
+                entity.HasKey(x => x.IDListaEspera);
+                entity.Property(x => x.FechaUso).IsRequired().HasColumnType("date");
+                entity.Property(x => x.HoraInicio).IsRequired().HasColumnType("time");
+                entity.Property(x => x.Posicion).IsRequired();
+                entity.Property(x => x.FechaInscripcion).IsRequired().HasColumnType("timestamptz");
+                entity.Property(x => x.Estado).IsRequired().HasMaxLength(15).HasDefaultValue("ESPERANDO");
+                entity.HasOne(x => x.Amenity).WithMany()
+                      .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany()
+                      .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<MantenimientoProgramado>(entity =>
+            {
+                entity.ToTable("PB_MantenimientoProgramado");
+                entity.HasKey(x => x.IDMantenimiento);
+                entity.Property(x => x.Descripcion).IsRequired().HasMaxLength(200);
+                entity.Property(x => x.Recurrencia).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.HoraInicio).IsRequired().HasColumnType("time");
+                entity.Property(x => x.HoraFin).IsRequired().HasColumnType("time");
+                entity.Property(x => x.FechaInicio).IsRequired().HasColumnType("date");
+                entity.Property(x => x.FechaFin).IsRequired().HasColumnType("date");
+                entity.HasOne(x => x.Amenity).WithMany()
+                      .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Persona>(entity =>

@@ -132,5 +132,24 @@ namespace ProyectoBase.Tests.Services
             Assert.NotNull(savedIncidencia);
             Assert.Equal("Foco roto", savedIncidencia.Descripcion);
         }
+        [Fact]
+        public async Task CanSave_AuditLog()
+        {
+            // Arrange
+            var context = GetDbContext();
+            
+            var auditLog = new AuditLog { Usuario = "admin@test.com", Accion = "CREAR_RESERVA", Entidad = "Reserva", EntidadId = 99, FechaHora = DateTime.UtcNow, Detalle = "{ \"id\": 99 }" };
+
+            // Act
+            context.AuditLogs.Add(auditLog);
+            await context.SaveChangesAsync();
+
+            // Assert
+            var savedLog = await context.AuditLogs.FirstOrDefaultAsync();
+            
+            Assert.NotNull(savedLog);
+            Assert.Equal("admin@test.com", savedLog.Usuario);
+            Assert.Equal("CREAR_RESERVA", savedLog.Accion);
+        }
     }
 }

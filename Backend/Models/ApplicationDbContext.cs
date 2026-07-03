@@ -22,6 +22,7 @@ namespace ProyectoBase.Models
         public DbSet<Incidencia> Incidencias { get; set; }
         public DbSet<ListaEspera> ListasEspera { get; set; }
         public DbSet<MantenimientoProgramado> MantenimientosProgramados { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -176,6 +177,18 @@ namespace ProyectoBase.Models
                 entity.Property(x => x.FechaFin).IsRequired().HasColumnType("date");
                 entity.HasOne(x => x.Amenity).WithMany()
                       .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.ToTable("PB_AuditLog");
+                entity.HasKey(x => x.IDAuditLog);
+                entity.Property(x => x.Usuario).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.Accion).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.Entidad).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.EntidadId).IsRequired();
+                entity.Property(x => x.FechaHora).IsRequired().HasColumnType("timestamptz");
+                entity.Property(x => x.Detalle).HasColumnType("text");
             });
 
             modelBuilder.Entity<Persona>(entity =>

@@ -36,6 +36,28 @@ Para Npgsql (usado por ASP.NET Core), se debe traducir de la siguiente forma, as
 User ID=postgres;Password=[YOUR-PASSWORD];Host=db.pacnmfzfvjthiuxinubo.supabase.co;Port=5432;Database=postgres;Pooling=true;SSL Mode=Require;Trust Server Certificate=true;
 ```
 
+> [!WARNING]
+> **Compatibilidad IPv4 en Render (Network is unreachable):**
+> La cadena de conexión directa a `db.pacnmfzfvjthiuxinubo.supabase.co` por el puerto `5432` resuelve únicamente a una dirección **IPv6**. Dado que los servicios gratuitos y redes por defecto de **Render** operan exclusivamente sobre **IPv4**, si intentas usar la conexión directa obtendrás un error `Network is unreachable (SocketException 101)`.
+> 
+> Para solucionar esto, debes usar el **Connection Pooler (Supavisor)** de Supabase, el cual cuenta con compatibilidad IPv4.
+
+### Configuración con Connection Pooler (Recomendado para Render)
+
+1. En el panel de Supabase, ve a **Project Settings > Database > Connection Pooling**.
+2. Copia la cadena de conexión del Pooler. Notarás que cambia el **host** (suele ser `aws-0-[region].pooler.supabase.com`) y el **usuario** (pasa a ser `postgres.[tu-project-id]`).
+3. **IMPORTANTE:** Para que Entity Framework Core pueda aplicar las migraciones automáticas al iniciar la aplicación, necesitamos **Session Mode**, el cual utiliza el puerto **`5432`** (no uses el puerto `6543` de Transaction Mode, ya que causará timeouts al intentar ejecutar las migraciones).
+4. El formato de la cadena Npgsql para Render debe ser:
+
+```text
+User ID=postgres.pacnmfzfvjthiuxinubo;Password=[TU_CONTRASEÑA];Host=aws-0-[TU_REGION].pooler.supabase.com;Port=5432;Database=postgres;Pooling=true;SSL Mode=Require;Trust Server Certificate=true;
+```
+
+> [!IMPORTANT]
+> - Asegúrate de reemplazar `[TU_REGION]` por la región de tu base de datos de Supabase (por ejemplo, `us-east-1`, `sa-east-1`, etc.) que figure en la sección Connection Pooling de tu panel.
+> - El puerto debe ser **`5432`** para habilitar el Session Mode y permitir el correcto funcionamiento de `db.Database.Migrate()`.
+> - El usuario debe ser `postgres.pacnmfzfvjthiuxinubo`.
+
 > [!IMPORTANT]
 > **Detalles de SSL:**
 > Las bases de datos de Supabase requieren conexiones seguras. Por lo tanto, los parámetros `SSL Mode=Require;Trust Server Certificate=true;` son esenciales para evitar errores de conexión SSL/TLS durante el handshake.

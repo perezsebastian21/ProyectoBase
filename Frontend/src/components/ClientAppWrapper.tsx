@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SplashScreen from "./SplashScreen";
+import AppLayout from "./AppLayout";
+
+const queryClient = new QueryClient();
 
 interface ClientAppWrapperProps {
   children: React.ReactNode;
@@ -10,36 +14,16 @@ interface ClientAppWrapperProps {
 export default function ClientAppWrapper({ children }: ClientAppWrapperProps) {
   const [showSplash, setShowSplash] = useState(true);
 
-  // Opcional: Si deseas que NO se muestre el splash screen en reloads durante la misma sesión de pestaña,
-  // puedes descomentar la lógica de sessionStorage. Por ahora, se mostrará siempre al cargar/recargar la app.
-  /*
-  useEffect(() => {
-    const hasShown = sessionStorage.getItem("vantage_splash_shown");
-    if (hasShown) {
-      setShowSplash(false);
-    }
-  }, []);
-
-  const handleFinished = () => {
-    sessionStorage.setItem("vantage_splash_shown", "true");
-    setShowSplash(false);
-  };
-  */
-
   const handleFinished = () => {
     setShowSplash(false);
   };
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       {showSplash && <SplashScreen onFinished={handleFinished} />}
-      {/* 
-        Mantenemos el contenido principal siempre en el DOM pero oculto/bloqueado
-        mientras se muestra el splash screen para mejorar la performance de renderizado.
-      */}
       <div className={showSplash ? "invisible h-0 overflow-hidden" : "visible"}>
-        {children}
+        <AppLayout>{children}</AppLayout>
       </div>
-    </>
+    </QueryClientProvider>
   );
 }

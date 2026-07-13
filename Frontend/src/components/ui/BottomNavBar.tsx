@@ -5,8 +5,8 @@ import React from "react";
 export type NavItem = "inicio" | "consorcios" | "complejos" | "perfil";
 
 interface BottomNavBarProps {
-  activeTab: NavItem;
-  onChange: (tab: NavItem) => void;
+  activeTab: NavItem | string;
+  onChange: (tab: NavItem | string) => void;
 }
 
 export default function BottomNavBar({ activeTab, onChange }: BottomNavBarProps) {

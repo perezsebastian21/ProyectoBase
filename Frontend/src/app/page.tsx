@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import TopAppBar from '@/components/ui/TopAppBar';
-import BottomNavBar, { NavItem } from '@/components/ui/BottomNavBar';
 import DashboardActionCard from '@/components/ui/DashboardActionCard';
 import AmenityCard from '@/components/ui/AmenityCard';
 import IncidentCard from '@/components/ui/IncidentCard';
@@ -40,7 +38,6 @@ function getCookie(name: string) {
 
 export default function Home() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<NavItem>('inicio');
   const [consorciosCount, setConsorciosCount] = useState<number | null>(null);
   const [complejosCount, setComplejosCount] = useState<number | null>(null);
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
@@ -58,14 +55,6 @@ export default function Home() {
   // Leer tab de los query params y cargar datos de sesión al montar
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // 1. Leer Tab
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab');
-      if (tabParam === 'perfil') {
-        setActiveTab('perfil');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
       // 2. Leer Sesión
       const token = getCookie('auth_token') || '';
       let username = localStorage.getItem('auth_username') || '';
@@ -110,18 +99,6 @@ export default function Home() {
       });
     }
   }, []);
-
-  const handleTabChange = (tab: NavItem) => {
-    if (tab === 'inicio') {
-      setActiveTab('inicio');
-    } else if (tab === 'consorcios') {
-      router.push(ROUTES.CONSORCIOS);
-    } else if (tab === 'complejos') {
-      router.push(ROUTES.COMPLEJOS);
-    } else if (tab === 'perfil') {
-      setActiveTab('perfil');
-    }
-  };
 
   // Cargar métricas al montar
   useEffect(() => {
@@ -211,9 +188,18 @@ export default function Home() {
     },
   ];
 
-  // Renderizar vistas según pestaña activa
+  // Renderizar vistas según pestaña activa (obtenida desde los query params ahora o solo mostrar inicio y redirigir perfil)
   const renderContent = () => {
-    switch (activeTab) {
+    // Determine the tab based on URL search params instead of state
+    let currentTab = 'inicio';
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'perfil') {
+        currentTab = 'perfil';
+      }
+    }
+    
+    switch (currentTab) {
       case 'inicio':
         return (
           <div className="space-y-8 animate-fade-in">
@@ -281,7 +267,7 @@ export default function Home() {
                 Módulos Administrativos
               </h3>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DashboardActionCard
                   category="Administración"
                   title="Consorcios"
@@ -308,6 +294,91 @@ export default function Home() {
                     </svg>
                   }
                   onClick={() => router.push(ROUTES.COMPLEJOS)}
+                />
+                
+                <DashboardActionCard
+                  category="Inmuebles"
+                  title="Unidades Habitacionales"
+                  badgeLabel="Activo"
+                  badgeStatus="success"
+                  description="Administración de unidades, departamentos o lotes vinculados a un complejo."
+                  icon={
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  }
+                  onClick={() => router.push(ROUTES.UNIDADES)}
+                />
+                
+                <DashboardActionCard
+                  category="Personas"
+                  title="Usuarios y Personas"
+                  badgeLabel="Activo"
+                  badgeStatus="success"
+                  description="Gestiona los perfiles de los usuarios y personas, incluyendo Inquilinos e Invitados."
+                  icon={
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  }
+                  onClick={() => router.push(ROUTES.PERSONAS)}
+                />
+
+                <DashboardActionCard
+                  category="Espacios"
+                  title="Amenities"
+                  badgeLabel="Activo"
+                  badgeStatus="success"
+                  description="Administra los espacios comunes y sus reglas de uso (tarifas, bloqueos, etc)."
+                  icon={
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  }
+                  onClick={() => router.push(ROUTES.AMENITIES_ADMIN)}
+                />
+
+                <DashboardActionCard
+                  category="Operaciones"
+                  title="Reservas & Listas"
+                  badgeLabel="Activo"
+                  badgeStatus="success"
+                  description="Supervisa y gestiona las reservas de los residentes y las colas de espera."
+                  icon={
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  }
+                  onClick={() => router.push(ROUTES.RESERVAS_ADMIN)}
+                />
+
+                <DashboardActionCard
+                  category="Mantenimiento"
+                  title="Incidencias & Tareas"
+                  badgeLabel="Activo"
+                  badgeStatus="success"
+                  description="Administra reportes de roturas y programa mantenimientos preventivos."
+                  icon={
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  }
+                  onClick={() => router.push(ROUTES.INCIDENCIAS_ADMIN)}
+                />
+                
+                <DashboardActionCard
+                  category="Sistema"
+                  title="Auditoría"
+                  badgeLabel="Activo"
+                  badgeStatus="success"
+                  description="Verifica el historial completo de cambios en la plataforma."
+                  icon={
+                    <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  }
+                  onClick={() => router.push(ROUTES.AUDIT_LOGS)}
                 />
               </div>
             </section>
@@ -391,18 +462,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-background text-slate-800 dark:text-slate-100 flex flex-col font-sans pb-32 transition-colors duration-300">
-      <TopAppBar
-        title="Livity OS"
-        onAvatarClick={() => setActiveTab('perfil')}
-      />
-
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8">
-        {renderContent()}
-      </main>
-
-      {/* Floating Bottom Navigation */}
-      <BottomNavBar activeTab={activeTab} onChange={handleTabChange} />
+    <div className="max-w-4xl w-full mx-auto px-6 py-8">
+      {renderContent()}
     </div>
   );
 }

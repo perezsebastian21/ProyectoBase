@@ -1,24 +1,13 @@
-/**
- * Amenities Feature Module
- *
- * Este módulo contiene todo lo relacionado con la gestión de amenities:
- * - Componentes específicos (AmenityCard, AmenityList, etc.)
- * - Hooks para lógica de amenities
- * - Servicios para comunicación con la API
- * - Tipos e interfaces
- *
- * Uso:
- *   import { AmenityCard, useAmenities } from '@/features/amenities';
- */
+export * from './types';
 
-// Components
-// export { AmenityCard } from './components/AmenityCard';
+export * from './services/amenityService';
+export * from './services/amenityConfigService';
 
-// Hooks
-// export { useAmenities } from './hooks/useAmenities';
+export * from './hooks/useAmenities';
+export * from './hooks/useAmenityConfigs';
 
-// Services
-// export { amenityService } from './services/amenityService';
+export { default as AmenityList } from './components/AmenityList';
+export { default as AmenityFormModal } from './components/AmenityFormModal';
 
-// Types
-// export type { Amenity, AmenityStatus } from './types/amenity.types';
+export { default as AmenityConfigList } from './components/AmenityConfigList';
+export { default as AmenityConfigFormModal } from './components/AmenityConfigFormModal';

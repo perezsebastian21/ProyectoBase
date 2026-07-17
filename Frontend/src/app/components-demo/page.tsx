@@ -257,7 +257,7 @@ export default function ComponentsDemoPage() {
       </main>
 
       {/* Floating Bottom Nav Bar */}
-      <BottomNavBar activeTab={activeTab} onChange={setActiveTab} />
+      <BottomNavBar activeTab={activeTab} onChange={(tab) => setActiveTab(tab as NavItem)} />
     </div>
   );
 }

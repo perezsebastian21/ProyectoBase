@@ -9,3 +9,4 @@
  */
 
 export { useBackendHealth } from './useBackendHealth';
+export { useDebounce } from './useDebounce';

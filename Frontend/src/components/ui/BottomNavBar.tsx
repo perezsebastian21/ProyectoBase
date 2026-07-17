@@ -5,8 +5,8 @@ import React from "react";
 export type NavItem = "inicio" | "consorcios" | "complejos" | "perfil";
 
 interface BottomNavBarProps {
-  activeTab: NavItem;
-  onChange: (tab: NavItem) => void;
+  activeTab: NavItem | string;
+  onChange: (tab: NavItem | string) => void;
 }
 
 export default function BottomNavBar({ activeTab, onChange }: BottomNavBarProps) {
@@ -66,21 +66,19 @@ export default function BottomNavBar({ activeTab, onChange }: BottomNavBarProps)
               )}
 
               <div
-                className={`transition-all duration-300 z-10 ${
-                  isActive
+                className={`transition-all duration-300 z-10 ${isActive
                     ? "text-brand-primary scale-110"
                     : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"
-                }`}
+                  }`}
               >
                 {item.icon}
               </div>
 
               <span
-                className={`text-[8px] font-semibold mt-0.5 tracking-widest uppercase transition-all duration-300 z-10 ${
-                  isActive
+                className={`text-[8px] font-semibold mt-0.5 tracking-widest uppercase transition-all duration-300 z-10 ${isActive
                     ? "text-slate-800 dark:text-white"
                     : "text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
-                }`}
+                  }`}
               >
                 {item.label}
               </span>

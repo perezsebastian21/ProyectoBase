@@ -1,153 +1,96 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { consorcioService } from '../services/consorcioService';
 import type { Consorcio, CreateConsorcioPayload, UpdateConsorcioPayload } from '../types';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export function useConsorcios() {
-  const [items, setItems] = useState<Consorcio[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   
   // Parámetros de búsqueda y paginación
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 450);
 
   // Modales
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedConsorcio, setSelectedConsorcio] = useState<Consorcio | null>(null);
 
-  // Evitar búsquedas simultáneas o loops
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce para la búsqueda
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(1); // Volver a la primera página en una búsqueda nueva
-    }, 450);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchQuery]);
-
-  // Carga de datos
-  const fetchConsorcios = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  // Queries
+  const { data: queryData, isLoading, error: queryError } = useQuery({
+    queryKey: ['consorcios', page, limit, debouncedSearch],
+    queryFn: async () => {
       const response = await consorcioService.findQP(page, limit, debouncedSearch);
-      if (response.success && response.data) {
-        setItems(response.data.items);
-        setTotalCount(response.data.totalCount);
-      } else {
-        setError(response.errorMessage || 'Error al obtener la lista de consorcios.');
+      if (!response.success) {
+        throw new Error(response.errorMessage || 'Error al obtener la lista de consorcios');
       }
-    } catch (err) {
-      setError('Ocurrió un error al conectarse con el servidor.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, limit, debouncedSearch]);
+      return response.data;
+    },
+  });
 
-  // Recargar cuando cambian los filtros
-  useEffect(() => {
-    fetchConsorcios();
-  }, [fetchConsorcios]);
+  const items = queryData?.items || [];
+  const totalCount = queryData?.totalCount || 0;
+  const error = queryError ? (queryError as Error).message : null;
 
-  // CRUD: Crear
-  const createConsorcio = async (payload: CreateConsorcioPayload) => {
-    setIsSubmitLoading(true);
-    setError(null);
-    try {
-      const response = await consorcioService.create(payload);
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateConsorcioPayload) => consorcioService.create(payload),
+    onSuccess: (response) => {
       if (response.success) {
+        queryClient.invalidateQueries({ queryKey: ['consorcios'] });
         setIsFormOpen(false);
-        fetchConsorcios(); // Refrescar lista
-        return { success: true };
       } else {
-        return { success: false, error: response.errorMessage || 'Error al crear el consorcio.' };
+        throw new Error(response.errorMessage || 'Error al crear consorcio');
       }
-    } catch (err) {
-      return { success: false, error: 'Ocurrió un error de red.' };
-    } finally {
-      setIsSubmitLoading(false);
     }
-  };
+  });
 
-  // CRUD: Modificar
-  const updateConsorcio = async (payload: UpdateConsorcioPayload) => {
-    setIsSubmitLoading(true);
-    setError(null);
-    try {
-      const response = await consorcioService.update(payload);
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateConsorcioPayload) => consorcioService.update(payload),
+    onSuccess: (response) => {
       if (response.success) {
+        queryClient.invalidateQueries({ queryKey: ['consorcios'] });
         setIsFormOpen(false);
         setSelectedConsorcio(null);
-        fetchConsorcios(); // Refrescar lista
-        return { success: true };
       } else {
-        return { success: false, error: response.errorMessage || 'Error al actualizar el consorcio.' };
+        throw new Error(response.errorMessage || 'Error al actualizar consorcio');
       }
-    } catch (err) {
-      return { success: false, error: 'Ocurrió un error de red.' };
-    } finally {
-      setIsSubmitLoading(false);
     }
-  };
+  });
 
-  // CRUD: Eliminar
-  const deleteConsorcio = async (id: number) => {
-    setIsSubmitLoading(true);
-    setError(null);
-    try {
-      const response = await consorcioService.delete(id);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => consorcioService.delete(id),
+    onSuccess: (response) => {
       if (response.success) {
+        queryClient.invalidateQueries({ queryKey: ['consorcios'] });
         setIsDeleteOpen(false);
         setSelectedConsorcio(null);
-        
-        // Si eliminamos el último elemento de la página actual y no es la primera, volvemos una página atrás
         if (items.length === 1 && page > 1) {
           setPage(prev => prev - 1);
-        } else {
-          fetchConsorcios();
         }
-        return { success: true };
       } else {
-        return { success: false, error: response.errorMessage || 'Error al eliminar el consorcio.' };
+        throw new Error(response.errorMessage || 'Error al eliminar consorcio');
       }
-    } catch (err) {
-      return { success: false, error: 'Ocurrió un error de red.' };
-    } finally {
-      setIsSubmitLoading(false);
     }
-  };
+  });
 
-  // Abrir formulario para Crear
+  const isSubmitLoading = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
+  // Actions
   const handleOpenCreate = () => {
     setSelectedConsorcio(null);
     setIsFormOpen(true);
   };
 
-  // Abrir formulario para Editar
   const handleOpenEdit = (consorcio: Consorcio) => {
     setSelectedConsorcio(consorcio);
     setIsFormOpen(true);
   };
 
-  // Abrir confirmación de Eliminación
   const handleOpenDelete = (consorcio: Consorcio) => {
     setSelectedConsorcio(consorcio);
     setIsDeleteOpen(true);
@@ -175,9 +118,32 @@ export function useConsorcios() {
     handleOpenCreate,
     handleOpenEdit,
     handleOpenDelete,
-    createConsorcio,
-    updateConsorcio,
-    deleteConsorcio,
-    refreshList: fetchConsorcios,
+    
+    // Mutate proxies returning Promises to keep signature somewhat similar, or handle differently in component
+    createConsorcio: async (payload: CreateConsorcioPayload) => {
+      try {
+        await createMutation.mutateAsync(payload);
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message };
+      }
+    },
+    updateConsorcio: async (payload: UpdateConsorcioPayload) => {
+      try {
+        await updateMutation.mutateAsync(payload);
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message };
+      }
+    },
+    deleteConsorcio: async (id: number) => {
+      try {
+        await deleteMutation.mutateAsync(id);
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message };
+      }
+    },
+    refreshList: () => queryClient.invalidateQueries({ queryKey: ['consorcios'] }),
   };
 }

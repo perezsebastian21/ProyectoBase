@@ -1,201 +1,93 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { complejoService } from '../services/complejoService';
 import { consorcioService } from '../../consorcios/services/consorcioService';
-import type { Consorcio } from '../../consorcios/types';
 import type { Complejo, CreateComplejoPayload, UpdateComplejoPayload } from '../types';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export function useComplejos() {
-  const [items, setItems] = useState<Complejo[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Lista de consorcios disponibles para asociar
-  const [consorcios, setConsorcios] = useState<Consorcio[]>([]);
-  const [isLoadingConsorcios, setIsLoadingConsorcios] = useState(false);
+  const queryClient = useQueryClient();
   
-  // Parámetros de búsqueda y paginación
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 450);
 
-  // Modales
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedComplejo, setSelectedComplejo] = useState<Complejo | null>(null);
 
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce para la búsqueda
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(1);
-    }, 450);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchQuery]);
-
-  // Carga de Consorcios (para mapeo y dropdown)
-  const fetchConsorcios = useCallback(async () => {
-    setIsLoadingConsorcios(true);
-    try {
+  // Queries
+  const { data: consorciosData, isLoading: isLoadingConsorcios } = useQuery({
+    queryKey: ['consorcios', 'all'],
+    queryFn: async () => {
       const response = await consorcioService.getAll();
-      if (response.success && response.data) {
-        setConsorcios(response.data);
-        return response.data;
-      }
-    } catch (err) {
-      console.error('Error al obtener la lista de consorcios para complejos:', err);
-    } finally {
-      setIsLoadingConsorcios(false);
-    }
-    return [];
-  }, []);
+      return response.data || [];
+    },
+  });
+  
+  const consorcios = consorciosData || [];
 
-  // Carga de complejos + mapeo de nombres de consorcios
-  const fetchComplejos = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Primero asegurar que tenemos la lista de consorcios para mapear el nombre
-      let consorciosList = consorcios;
-      if (consorciosList.length === 0) {
-        consorciosList = await fetchConsorcios();
-      }
-
+  const { data: queryData, isLoading, error: queryError } = useQuery({
+    queryKey: ['complejos', page, limit, debouncedSearch, consorcios],
+    queryFn: async () => {
       const response = await complejoService.findQP(page, limit, debouncedSearch);
-      if (response.success && response.data) {
-        // Enriquecer los complejos con el nombre del consorcio asociado
-        const enrichedItems = response.data.items.map((complejo) => {
-          const consorcio = consorciosList.find(c => c.idConsorcio === complejo.idConsorcio);
-          return {
-            ...complejo,
-            nombreConsorcio: consorcio ? consorcio.nombre : 'Consorcio desconocido',
-          };
-        });
-        
-        setItems(enrichedItems);
-        setTotalCount(response.data.totalCount);
-      } else {
-        setError(response.errorMessage || 'Error al obtener la lista de complejos.');
-      }
-    } catch (err) {
-      setError('Ocurrió un error al conectarse con el servidor.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, limit, debouncedSearch, consorcios, fetchConsorcios]);
+      if (!response.success) throw new Error(response.errorMessage || 'Error fetching complejos');
+      
+      const enrichedItems = (response.data?.items || []).map((complejo) => {
+        const consorcio = consorcios.find(c => c.idConsorcio === complejo.idConsorcio);
+        return {
+          ...complejo,
+          nombreConsorcio: consorcio ? consorcio.nombre : 'Consorcio desconocido',
+        };
+      });
 
-  // Recargar al cambiar los filtros de paginación/búsqueda
-  useEffect(() => {
-    fetchComplejos();
-  }, [page, limit, debouncedSearch]);
+      return { items: enrichedItems, totalCount: response.data?.totalCount || 0 };
+    },
+    enabled: !!consorciosData, // Only fetch when consorcios are ready
+  });
 
-  // Recargar consorcios al montar
-  useEffect(() => {
-    fetchConsorcios();
-  }, [fetchConsorcios]);
+  const items = queryData?.items || [];
+  const totalCount = queryData?.totalCount || 0;
+  const error = queryError ? (queryError as Error).message : null;
 
-  // CRUD: Crear
-  const createComplejo = async (payload: CreateComplejoPayload) => {
-    setIsSubmitLoading(true);
-    setError(null);
-    try {
-      const response = await complejoService.create(payload);
-      if (response.success) {
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateComplejoPayload) => complejoService.create(payload),
+    onSuccess: (res) => {
+      if (res.success) {
+        queryClient.invalidateQueries({ queryKey: ['complejos'] });
         setIsFormOpen(false);
-        fetchComplejos();
-        return { success: true };
-      } else {
-        return { success: false, error: response.errorMessage || 'Error al crear el complejo.' };
-      }
-    } catch (err) {
-      return { success: false, error: 'Ocurrió un error de red.' };
-    } finally {
-      setIsSubmitLoading(false);
+      } else throw new Error(res.errorMessage || 'Error');
     }
-  };
+  });
 
-  // CRUD: Modificar
-  const updateComplejo = async (payload: UpdateComplejoPayload) => {
-    setIsSubmitLoading(true);
-    setError(null);
-    try {
-      const response = await complejoService.update(payload);
-      if (response.success) {
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateComplejoPayload) => complejoService.update(payload),
+    onSuccess: (res) => {
+      if (res.success) {
+        queryClient.invalidateQueries({ queryKey: ['complejos'] });
         setIsFormOpen(false);
         setSelectedComplejo(null);
-        fetchComplejos();
-        return { success: true };
-      } else {
-        return { success: false, error: response.errorMessage || 'Error al actualizar el complejo.' };
-      }
-    } catch (err) {
-      return { success: false, error: 'Ocurrió un error de red.' };
-    } finally {
-      setIsSubmitLoading(false);
+      } else throw new Error(res.errorMessage || 'Error');
     }
-  };
+  });
 
-  // CRUD: Eliminar
-  const deleteComplejo = async (id: number) => {
-    setIsSubmitLoading(true);
-    setError(null);
-    try {
-      const response = await complejoService.delete(id);
-      if (response.success) {
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => complejoService.delete(id),
+    onSuccess: (res) => {
+      if (res.success) {
+        queryClient.invalidateQueries({ queryKey: ['complejos'] });
         setIsDeleteOpen(false);
         setSelectedComplejo(null);
-        
-        if (items.length === 1 && page > 1) {
-          setPage(prev => prev - 1);
-        } else {
-          fetchComplejos();
-        }
-        return { success: true };
-      } else {
-        return { success: false, error: response.errorMessage || 'Error al eliminar el complejo.' };
-      }
-    } catch (err) {
-      return { success: false, error: 'Ocurrió un error de red.' };
-    } finally {
-      setIsSubmitLoading(false);
+        if (items.length === 1 && page > 1) setPage(p => p - 1);
+      } else throw new Error(res.errorMessage || 'Error');
     }
-  };
+  });
 
-  // Abrir modal de creación
-  const handleOpenCreate = () => {
-    // Forzamos actualización de consorcios al abrir formulario
-    fetchConsorcios();
-    setSelectedComplejo(null);
-    setIsFormOpen(true);
-  };
-
-  // Abrir modal de edición
-  const handleOpenEdit = (complejo: Complejo) => {
-    fetchConsorcios();
-    setSelectedComplejo(complejo);
-    setIsFormOpen(true);
-  };
-
-  // Abrir confirmación de borrado
-  const handleOpenDelete = (complejo: Complejo) => {
-    setSelectedComplejo(complejo);
-    setIsDeleteOpen(true);
-  };
+  const isSubmitLoading = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   return {
     items,
@@ -209,24 +101,29 @@ export function useComplejos() {
     setPage,
     setLimit,
     setSearchQuery,
-    
-    // Consorcios cargados para dropdowns
     consorcios,
     isLoadingConsorcios,
-    fetchConsorcios,
-
-    // Modales & CRUD
+    
     isFormOpen,
     isDeleteOpen,
     selectedComplejo,
     setIsFormOpen,
     setIsDeleteOpen,
-    handleOpenCreate,
-    handleOpenEdit,
-    handleOpenDelete,
-    createComplejo,
-    updateComplejo,
-    deleteComplejo,
-    refreshList: fetchComplejos,
+    handleOpenCreate: () => { setSelectedComplejo(null); setIsFormOpen(true); },
+    handleOpenEdit: (c: Complejo) => { setSelectedComplejo(c); setIsFormOpen(true); },
+    handleOpenDelete: (c: Complejo) => { setSelectedComplejo(c); setIsDeleteOpen(true); },
+    
+    createComplejo: async (payload: CreateComplejoPayload) => {
+      try { await createMutation.mutateAsync(payload); return { success: true }; }
+      catch (e: any) { return { success: false, error: e.message }; }
+    },
+    updateComplejo: async (payload: UpdateComplejoPayload) => {
+      try { await updateMutation.mutateAsync(payload); return { success: true }; }
+      catch (e: any) { return { success: false, error: e.message }; }
+    },
+    deleteComplejo: async (id: number) => {
+      try { await deleteMutation.mutateAsync(id); return { success: true }; }
+      catch (e: any) { return { success: false, error: e.message }; }
+    },
   };
 }

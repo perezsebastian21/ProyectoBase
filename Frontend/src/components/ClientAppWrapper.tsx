@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import SplashScreen from "./SplashScreen";
 import AppLayout from "./AppLayout";
@@ -22,7 +22,9 @@ export default function ClientAppWrapper({ children }: ClientAppWrapperProps) {
     <QueryClientProvider client={queryClient}>
       {showSplash && <SplashScreen onFinished={handleFinished} />}
       <div className={showSplash ? "invisible h-0 overflow-hidden" : "visible"}>
-        <AppLayout>{children}</AppLayout>
+        <Suspense fallback={null}>
+          <AppLayout>{children}</AppLayout>
+        </Suspense>
       </div>
     </QueryClientProvider>
   );

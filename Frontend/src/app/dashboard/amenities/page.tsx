@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { AmenityList } from '@/features/amenities';
 
 export const metadata = {
@@ -9,7 +9,9 @@ export const metadata = {
 export default function AmenitiesPage() {
   return (
     <div className="max-w-4xl w-full mx-auto px-6 py-8">
-      <AmenityList />
+      <Suspense fallback={<div>Cargando...</div>}>
+        <AmenityList />
+      </Suspense>
     </div>
   );
 }

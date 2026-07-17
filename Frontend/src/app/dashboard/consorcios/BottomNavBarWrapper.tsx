@@ -17,7 +17,7 @@ export default function BottomNavBarWrapper() {
     activeTab = 'complejos';
   }
 
-  const handleTabChange = (tab: NavItem) => {
+  const handleTabChange = (tab: NavItem | string) => {
     if (tab === 'inicio') {
       router.push(ROUTES.DASHBOARD);
     } else if (tab === 'consorcios') {

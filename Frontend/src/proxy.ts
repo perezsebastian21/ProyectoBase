@@ -19,7 +19,7 @@ const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password'];
 /** Prefijos que siempre se ignoran (assets, API, etc.) */
 const IGNORED_PREFIXES = ['/_next', '/api', '/icons', '/images', '/sw.js', '/manifest'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Ignorar assets estáticos, _next, API routes

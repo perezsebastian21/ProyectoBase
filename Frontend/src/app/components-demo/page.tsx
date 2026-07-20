@@ -90,7 +90,6 @@ export default function ComponentsDemoPage() {
       {/* Top Header */}
       <TopAppBar
         title="Guía de Componentes"
-        onMenuClick={() => alert("Menú presionado")}
         onAvatarClick={() => alert("Perfil de usuario presionado")}
       />
 

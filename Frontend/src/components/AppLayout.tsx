@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [activeTab, setActiveTab] = useState<NavItem | string>('inicio');
 
   // Determinar la pestaña activa basándose en la ruta y los parámetros

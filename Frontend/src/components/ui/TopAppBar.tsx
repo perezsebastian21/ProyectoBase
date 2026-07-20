@@ -4,13 +4,11 @@ import React, { useState, useEffect } from "react";
 
 interface TopAppBarProps {
   title: string;
-  onMenuClick?: () => void;
   onAvatarClick?: () => void;
 }
 
 export default function TopAppBar({
   title,
-  onMenuClick,
   onAvatarClick,
 }: TopAppBarProps) {
   const [isDark, setIsDark] = useState<boolean | null>(null);
@@ -35,30 +33,10 @@ export default function TopAppBar({
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-6 py-4 flex items-center justify-between transition-all duration-300">
-      {/* Left Action (Menu) */}
-      <button
-        onClick={onMenuClick}
-        className="p-2 rounded-xl bg-brand-surface-container/60 hover:bg-brand-surface-bright/20 border border-brand-surface-bright/10 text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white cursor-pointer active:scale-95 transition-all duration-200 focus:outline-none"
-        aria-label="Menú principal"
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
+    <header className="relative sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-6 py-4 flex items-center justify-between transition-all duration-300">
 
-      {/* Title */}
-      <h1 className="text-base font-bold tracking-wider text-slate-800 dark:text-slate-100 uppercase select-none">
+      {/* Title — centered absolutely so it stays in the middle regardless of side elements */}
+      <h1 className="absolute left-1/2 -translate-x-1/2 text-base font-bold tracking-wider text-slate-800 dark:text-slate-100 uppercase select-none pointer-events-none">
         {title}
       </h1>
 

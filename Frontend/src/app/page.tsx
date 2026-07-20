@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import DashboardActionCard from '@/components/ui/DashboardActionCard';
 import AmenityCard from '@/components/ui/AmenityCard';
@@ -38,6 +38,7 @@ function getCookie(name: string) {
 
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [consorciosCount, setConsorciosCount] = useState<number | null>(null);
   const [complejosCount, setComplejosCount] = useState<number | null>(null);
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
@@ -188,16 +189,10 @@ export default function Home() {
     },
   ];
 
-  // Renderizar vistas según pestaña activa (obtenida desde los query params ahora o solo mostrar inicio y redirigir perfil)
+  // Renderizar vistas según pestaña activa — usando useSearchParams() para reactividad
+  const currentTab = searchParams.get('tab') === 'perfil' ? 'perfil' : 'inicio';
+
   const renderContent = () => {
-    // Determine the tab based on URL search params instead of state
-    let currentTab = 'inicio';
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('tab') === 'perfil') {
-        currentTab = 'perfil';
-      }
-    }
     
     switch (currentTab) {
       case 'inicio':

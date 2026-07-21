@@ -2,15 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Middleware de autenticación — Vantage Residential OS
+ * Middleware de autenticación — Livity OS
  *
- * Flujo tipo app nativa:
- * - Si el usuario tiene token → accede normalmente a la app
- * - Si NO tiene token → redirige a /login
- * - Las rutas públicas (/login, /register, assets) no requieren auth
- *
- * Nota: por ahora el token se guarda en una cookie `auth_token`.
- * Cuando el backend devuelva un token real, se puede validar acá.
+ * Flujo:
+ * 1. Si NO tiene token y busca ruta protegida → redirige a /login
+ * 2. Si tiene token y entra a /select-role → permite acceso
+ * 3. Si tiene token y entra a ruta protegida sin tener rol seleccionado ('auth_role') → redirige a /select-role
+ * 4. Si tiene token y entra a rutas públicas (/login) → redirige a / (o /select-role)
  */
 
 /** Rutas que NO requieren autenticación */
@@ -27,29 +25,40 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Ignorar archivos estáticos (favicon, images, etc.)
+  // Ignorar archivos estáticos (favicon, imágenes, etc.)
   if (pathname.includes('.')) {
     return NextResponse.next();
   }
 
-  // 2. Leer el token de la cookie
+  // 2. Leer cookies
   const token = request.cookies.get('auth_token')?.value;
+  const activeRole = request.cookies.get('auth_role')?.value;
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(route + '/')
   );
+  const isSelectRoleRoute = pathname === '/select-role';
 
-  // 3. Si no hay token y la ruta NO es pública → redirigir a /login
+  // 3. Si NO hay token y la ruta NO es pública → redirigir a /login
   if (!token && !isPublicRoute) {
     const loginUrl = new URL('/login', request.url);
-    // Guardar la URL original para redirigir después del login
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. Si hay token y está en una ruta pública (login/register) → redirigir a /
+  // 4. Si hay token y está intentando acceder a una ruta pública → redirigir según si tiene rol o no
   if (token && isPublicRoute) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const target = activeRole ? '/' : '/select-role';
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
+  // 5. Si hay token, NO tiene rol seleccionado y NO está en /select-role → redirigir a /select-role
+  if (token && !activeRole && !isSelectRoleRoute) {
+    const selectRoleUrl = new URL('/select-role', request.url);
+    if (pathname !== '/') {
+      selectRoleUrl.searchParams.set('redirect', pathname);
+    }
+    return NextResponse.redirect(selectRoleUrl);
   }
 
   return NextResponse.next();
@@ -57,8 +66,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   /*
-   * Match all routes except static files and API routes.
-   * This regex matches everything that is NOT a file with an extension.
+   * Match todas las rutas excepto estáticos
    */
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

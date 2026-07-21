@@ -79,9 +79,13 @@ export function useLogin() {
           localStorage.setItem('auth_expiration', expiration || '');
         }
 
-        // Redirigir a la URL original (si venía de una ruta protegida) o a la raíz (/)
-        const redirectTo = searchParams.get('redirect') || '/';
-        router.push(redirectTo);
+        // Redirigir a la pantalla de selección de rol (/select-role)
+        const targetRedirect = searchParams.get('redirect');
+        const selectRoleUrl = targetRedirect && targetRedirect !== '/' 
+          ? `/select-role?redirect=${encodeURIComponent(targetRedirect)}`
+          : '/select-role';
+          
+        router.push(selectRoleUrl);
       } catch (err) {
         const message =
           err instanceof Error

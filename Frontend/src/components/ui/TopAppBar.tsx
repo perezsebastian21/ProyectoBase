@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { roleService } from "@/lib/role-service";
+import { UserRole, USER_ROLES } from "@/types/roles";
 
 interface TopAppBarProps {
   title: string;
@@ -11,12 +14,20 @@ export default function TopAppBar({
   title,
   onAvatarClick,
 }: TopAppBarProps) {
+  const router = useRouter();
   const [isDark, setIsDark] = useState<boolean | null>(null);
+  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     // Check if the html tag has 'dark' class
     const isCurrentlyDark = document.documentElement.classList.contains("dark");
     setIsDark(isCurrentlyDark);
+
+    // Leer rol activo
+    const role = roleService.getActiveRole();
+    if (role) {
+      setActiveRole(role);
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -32,16 +43,41 @@ export default function TopAppBar({
     }
   };
 
+  const handleRoleBadgeClick = () => {
+    router.push('/select-role');
+  };
+
+  const roleConfig = activeRole ? USER_ROLES[activeRole] : null;
+
   return (
-    <header className="relative sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-6 py-4 flex items-center justify-between transition-all duration-300">
+    <header className="relative sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-4 sm:px-6 py-3.5 flex items-center justify-between transition-all duration-300">
+
+      {/* Left section: Active Role Badge */}
+      <div className="flex items-center gap-2 z-10">
+        {roleConfig ? (
+          <button
+            onClick={handleRoleBadgeClick}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold tracking-wide transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 shadow-sm ${roleConfig.badgeColor}`}
+            title="Hacé clic para cambiar de rol"
+          >
+            <span className="hidden sm:inline">Rol:</span>
+            <span>{roleConfig.title}</span>
+            <svg className="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        ) : (
+          <div className="w-16 h-6" />
+        )}
+      </div>
 
       {/* Title — centered absolutely so it stays in the middle regardless of side elements */}
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-base font-bold tracking-wider text-slate-800 dark:text-slate-100 uppercase select-none pointer-events-none">
+      <h1 className="absolute left-1/2 -translate-x-1/2 text-sm sm:text-base font-bold tracking-wider text-slate-800 dark:text-slate-100 uppercase select-none pointer-events-none">
         {title}
       </h1>
 
       {/* Right Action (Theme Toggle + User Avatar) */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 z-10">
         {isDark !== null ? (
           <button
             onClick={toggleTheme}
@@ -49,12 +85,10 @@ export default function TopAppBar({
             aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
           >
             {isDark ? (
-              // Sun icon for switching to light mode
               <svg className="w-5 h-5 text-amber-400 animate-[spin_10s_linear_infinite]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
               </svg>
             ) : (
-              // Moon icon for switching to dark mode
               <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
               </svg>
@@ -70,7 +104,6 @@ export default function TopAppBar({
           aria-label="Perfil del usuario"
         >
           <div className="relative w-8 h-8 rounded-full overflow-hidden bg-brand-surface-container flex items-center justify-center border border-brand-background">
-            {/* Svg avatar representation */}
             <svg
               className="w-5 h-5 text-slate-400"
               fill="currentColor"

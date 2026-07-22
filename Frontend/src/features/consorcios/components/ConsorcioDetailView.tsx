@@ -12,6 +12,7 @@ import ConsorcioComunicadoModal, { ComunicadoFormValues } from './ConsorcioComun
 import ComplejoFormModal from '@/features/complejos/components/ComplejoFormModal';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { ROUTES } from '@/constants';
+import { roleService } from '@/lib/role-service';
 import type { Consorcio } from '../types';
 import {
   ArrowLeft,
@@ -230,16 +231,21 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
     );
   }
 
+  const activeRole = roleService.getActiveRole();
+  const isConsorcioRole = activeRole === 'Consorcio';
+  const backRoute = isConsorcioRole ? ROUTES.HOME : ROUTES.CONSORCIOS;
+  const backLabel = isConsorcioRole ? 'Volver al Panel Principal' : 'Volver al listado de Consorcios';
+
   if (!consorcio) {
     return (
       <div className="text-center py-12 space-y-4">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Consorcio no encontrado</h3>
         <button
-          onClick={() => router.push(ROUTES.CONSORCIOS)}
+          onClick={() => router.push(backRoute)}
           className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold"
         >
-          Volver a Consorcios
+          {backLabel}
         </button>
       </div>
     );
@@ -259,11 +265,11 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
       {/* Top Header */}
       <div className="flex flex-col gap-4">
         <button
-          onClick={() => router.push(ROUTES.CONSORCIOS)}
+          onClick={() => router.push(backRoute)}
           className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors w-fit cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Volver al listado de Consorcios</span>
+          <span>{backLabel}</span>
         </button>
 
         {/* Profile Card Header */}

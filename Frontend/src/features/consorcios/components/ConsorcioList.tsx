@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useConsorcios } from '../hooks/useConsorcios';
 import ConsorcioFormModal from './ConsorcioFormModal';
@@ -10,11 +10,14 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { Modal } from '@/components/ui/Modal';
 import type { Consorcio } from '../types';
 import { Search, Building2, MapPin, Mail, Phone } from 'lucide-react';
+import { roleService } from '@/lib/role-service';
+import { useConsorcioActivo } from '@/components/providers';
 
 export default function ConsorcioList() {
   const router = useRouter();
-  const {
+  const { consorcioActivo } = useConsorcioActivo();
 
+  const {
     items,
     totalCount,
     isLoading,
@@ -40,6 +43,15 @@ export default function ConsorcioList() {
     updateConsorcio,
     deleteConsorcio,
   } = useConsorcios();
+
+  // Si el rol activo es Consorcio, redirigir automáticamente al perfil de su Consorcio Activo
+  useEffect(() => {
+    const role = roleService.getActiveRole();
+    if (role === 'Consorcio') {
+      const targetId = consorcioActivo?.id || (items.length > 0 ? items[0].idConsorcio : 1);
+      router.replace(`/dashboard/consorcios/${targetId}`);
+    }
+  }, [consorcioActivo, items, router]);
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 

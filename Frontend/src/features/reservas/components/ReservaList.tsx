@@ -25,6 +25,7 @@ export default function ReservaList() {
     
     amenities,
     unidades,
+    complejoActivo,
     isLoadingDependencies,
 
     // Modales & CRUD
@@ -180,6 +181,7 @@ export default function ReservaList() {
         unidades={unidades}
         isLoadingDependencies={isLoadingDependencies}
         isSubmitLoading={isSubmitLoading}
+        complejoActivo={complejoActivo ?? null}
       />
 
       <Modal

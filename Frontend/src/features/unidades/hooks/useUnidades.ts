@@ -6,9 +6,11 @@ import { unidadService } from '../services/unidadService';
 import { complejoService } from '../../complejos/services/complejoService';
 import type { UnidadHabitacional, CreateUnidadPayload, UpdateUnidadPayload } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useConsorcioActivo } from '@/components/providers';
 
 export function useUnidades() {
   const queryClient = useQueryClient();
+  const { complejoActivo } = useConsorcioActivo();
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -31,7 +33,7 @@ export function useUnidades() {
   const complejos = complejosData || [];
 
   const { data: queryData, isLoading, error: queryError } = useQuery({
-    queryKey: ['unidades', page, limit, debouncedSearch, complejos],
+    queryKey: ['unidades', page, limit, debouncedSearch, complejoActivo?.id, complejos],
     queryFn: async () => {
       const response = await unidadService.findQP(page, limit, debouncedSearch);
       if (!response.success) throw new Error(response.errorMessage || 'Error fetching unidades');
@@ -44,9 +46,14 @@ export function useUnidades() {
         };
       });
 
-      return { items: enrichedItems, totalCount: response.data?.totalCount || 0 };
+      // Filtrar por complejo activo (en cliente)
+      const filteredItems = complejoActivo
+        ? enrichedItems.filter(u => u.idComplejo === complejoActivo.id)
+        : enrichedItems;
+
+      return { items: filteredItems, totalCount: filteredItems.length };
     },
-    enabled: !!complejosData, // Only fetch when complejos are ready
+    enabled: !!complejosData,
   });
 
   const items = queryData?.items || [];

@@ -7,9 +7,11 @@ import { amenityService } from '../../amenities/services/amenityService';
 import { unidadService } from '../../unidades/services/unidadService';
 import type { Reserva, CreateReservaPayload, UpdateReservaPayload } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useConsorcioActivo } from '@/components/providers';
 
 export function useReservas() {
   const queryClient = useQueryClient();
+  const { complejoActivo } = useConsorcioActivo();
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -40,12 +42,24 @@ export function useReservas() {
   const amenities = amenitiesData || [];
   const unidades = unidadesData || [];
 
+  // Filtrar por el complejo activo (en cliente). Si no hay complejo seleccionado, muestra todo.
+  const amenitiesFiltrados = complejoActivo
+    ? amenities.filter(a => a.idComplejo === complejoActivo.id)
+    : amenities;
+  const unidadesFiltradas = complejoActivo
+    ? unidades.filter(u => u.idComplejo === complejoActivo.id)
+    : unidades;
+
+  // IDs de amenities del complejo activo (para filtrar reservas)
+  const amenityIdsFiltrados = new Set(amenitiesFiltrados.map(a => a.idAmenity));
+
   const { data: queryData, isLoading, error: queryError } = useQuery({
-    queryKey: ['reservas', page, limit, debouncedSearch, amenities, unidades],
+    queryKey: ['reservas', page, limit, debouncedSearch, complejoActivo?.id, amenities, unidades],
     queryFn: async () => {
       const response = await reservaService.findQP(page, limit, debouncedSearch);
       if (!response.success) throw new Error(response.errorMessage || 'Error fetching reservas');
       
+      // Enriquecer con nombres
       const enrichedItems = (response.data?.items || []).map((reserva) => {
         const amenity = amenities.find(a => a.idAmenity === reserva.idAmenity);
         const unidad = unidades.find(u => u.idUnidadHabitacional === reserva.idUnidadHabitacional);
@@ -56,7 +70,12 @@ export function useReservas() {
         };
       });
 
-      return { items: enrichedItems, totalCount: response.data?.totalCount || 0 };
+      // Filtrar por complejo activo: solo reservas de amenities del complejo seleccionado
+      const filteredItems = complejoActivo
+        ? enrichedItems.filter(r => amenityIdsFiltrados.has(r.idAmenity))
+        : enrichedItems;
+
+      return { items: filteredItems, totalCount: filteredItems.length };
     },
     enabled: !!amenitiesData && !!unidadesData,
   });
@@ -114,8 +133,10 @@ export function useReservas() {
     setLimit,
     setSearchQuery,
     
-    amenities,
-    unidades,
+    // Listas filtradas por complejo activo (para el formulario de nueva reserva)
+    amenities: amenitiesFiltrados,
+    unidades: unidadesFiltradas,
+    complejoActivo,
     isLoadingDependencies: isLoadingAmenities || isLoadingUnidades,
     
     isFormOpen,

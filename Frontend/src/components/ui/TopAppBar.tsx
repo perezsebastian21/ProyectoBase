@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { roleService } from "@/lib/role-service";
 import { UserRole, USER_ROLES } from "@/types/roles";
+import { useConsorcioActivo } from "@/components/providers";
 
 interface TopAppBarProps {
   title: string;
@@ -17,6 +18,7 @@ export default function TopAppBar({
   const router = useRouter();
   const [isDark, setIsDark] = useState<boolean | null>(null);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+  const { consorcioActivo, complejoActivo } = useConsorcioActivo();
 
   useEffect(() => {
     // Check if the html tag has 'dark' class
@@ -52,7 +54,7 @@ export default function TopAppBar({
   return (
     <header className="relative sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-4 sm:px-6 py-3.5 flex items-center justify-between transition-all duration-300">
 
-      {/* Left section: Active Role Badge */}
+      {/* Left section: Active Role Badge + Perfil Activo */}
       <div className="flex items-center gap-2 z-10">
         {roleConfig ? (
           <button
@@ -68,6 +70,28 @@ export default function TopAppBar({
           </button>
         ) : (
           <div className="w-16 h-6" />
+        )}
+
+        {/* Chip: Perfil de Consorcio/Edificio activo */}
+        {(consorcioActivo || complejoActivo) && (
+          <button
+            onClick={() => router.push('/')}
+            title="Clic para cambiar el edificio activo"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-bold tracking-wide transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 shadow-sm hover:bg-blue-500/20 max-w-[200px]"
+          >
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span className="truncate">
+              {complejoActivo ? complejoActivo.nombre : consorcioActivo?.nombre}
+            </span>
+            {consorcioActivo && complejoActivo && (
+              <span className="opacity-60 shrink-0">·</span>
+            )}
+            {consorcioActivo && complejoActivo && (
+              <span className="truncate opacity-70 text-[10px]">{consorcioActivo.nombre}</span>
+            )}
+          </button>
         )}
       </div>
 

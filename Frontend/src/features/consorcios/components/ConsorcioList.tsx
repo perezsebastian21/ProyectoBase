@@ -1,16 +1,20 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useConsorcios } from '../hooks/useConsorcios';
 import ConsorcioFormModal from './ConsorcioFormModal';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { CreateButton } from '@/components/ui';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { Modal } from '@/components/ui/Modal';
 import type { Consorcio } from '../types';
-import { Plus, Search, Building2 } from 'lucide-react';
+import { Search, Building2, MapPin, Mail, Phone } from 'lucide-react';
 
 export default function ConsorcioList() {
+  const router = useRouter();
   const {
+
     items,
     totalCount,
     isLoading,
@@ -58,11 +62,17 @@ export default function ConsorcioList() {
       header: 'Consorcio',
       accessor: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 text-brand-primary dark:text-blue-400 flex items-center justify-center font-extrabold text-xs border border-blue-500/20">
-            <Building2 className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600/20 via-indigo-600/20 to-emerald-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-extrabold text-xs border border-blue-500/20 shrink-0">
+            <Building2 className="w-5 h-5" />
           </div>
           <div>
             <div className="font-bold text-slate-800 dark:text-slate-100">{row.nombre}</div>
+            {row.direccionLegal && (
+              <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <MapPin className="w-3 h-3 shrink-0 text-slate-400" />
+                <span>{row.direccionLegal}</span>
+              </div>
+            )}
           </div>
         </div>
       )
@@ -70,14 +80,42 @@ export default function ConsorcioList() {
     { 
       header: 'CUIT', 
       accessor: (row) => (
-        <span className="font-mono text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+        <span className="font-mono text-xs px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700/50">
           {row.cuit}
         </span>
       ) 
     },
-    { header: 'Email', accessor: (row) => <span className="text-slate-600 dark:text-slate-300">{row.email}</span> },
-    { header: 'Teléfono', accessor: (row) => <span className="text-slate-600 dark:text-slate-300">{row.telefono}</span> },
+    {
+      header: 'Contacto',
+      accessor: (row) => (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200 font-medium">
+            <Mail className="w-3 h-3 text-slate-400" />
+            <span>{row.email}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+            <Phone className="w-3 h-3 text-slate-400" />
+            <span>{row.telefono}</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: 'Estado',
+      accessor: (row) => {
+        const estado = row.estado || 'active';
+        const badgeMap = {
+          active: { status: 'success' as const, label: 'Activo' },
+          pending: { status: 'warning' as const, label: 'Pendiente' },
+          inactive: { status: 'error' as const, label: 'Inactivo' },
+          suspended: { status: 'error' as const, label: 'Suspendido' },
+        };
+        const badge = badgeMap[estado] || badgeMap.active;
+        return <StatusBadge status={badge.status} label={badge.label} />;
+      }
+    }
   ];
+
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -138,6 +176,7 @@ export default function ConsorcioList() {
         data={items}
         columns={columns}
         keyExtractor={(row) => row.idConsorcio.toString()}
+        onRowClick={(row) => router.push(`/dashboard/consorcios/${row.idConsorcio}`)}
         onEdit={handleOpenEdit}
         onDelete={handleOpenDelete}
         isLoading={isLoading}
@@ -150,6 +189,7 @@ export default function ConsorcioList() {
             : 'No hay consorcios registrados.'
         }
       />
+
 
       <ConsorcioFormModal
         isOpen={isFormOpen}

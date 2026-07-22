@@ -6,9 +6,11 @@ import { amenityService } from '../services/amenityService';
 import { complejoService } from '../../complejos/services/complejoService';
 import type { Amenity, CreateAmenityPayload, UpdateAmenityPayload } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useConsorcioActivo } from '@/components/providers';
 
 export function useAmenities() {
   const queryClient = useQueryClient();
+  const { complejoActivo } = useConsorcioActivo();
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -31,7 +33,7 @@ export function useAmenities() {
   const complejos = complejosData || [];
 
   const { data: queryData, isLoading, error: queryError } = useQuery({
-    queryKey: ['amenities', page, limit, debouncedSearch, complejos],
+    queryKey: ['amenities', page, limit, debouncedSearch, complejoActivo?.id, complejos],
     queryFn: async () => {
       const response = await amenityService.findQP(page, limit, debouncedSearch);
       if (!response.success) throw new Error(response.errorMessage || 'Error fetching amenities');
@@ -44,7 +46,12 @@ export function useAmenities() {
         };
       });
 
-      return { items: enrichedItems, totalCount: response.data?.totalCount || 0 };
+      // Filtrar por complejo activo (en cliente)
+      const filteredItems = complejoActivo
+        ? enrichedItems.filter(a => a.idComplejo === complejoActivo.id)
+        : enrichedItems;
+
+      return { items: filteredItems, totalCount: filteredItems.length };
     },
     enabled: !!complejosData,
   });

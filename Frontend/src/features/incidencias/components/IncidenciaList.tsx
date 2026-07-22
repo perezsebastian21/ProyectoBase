@@ -25,6 +25,7 @@ export default function IncidenciaList() {
     
     amenities,
     unidades,
+    complejoActivo,
     isLoadingDependencies,
 
     // Modales & CRUD
@@ -183,6 +184,7 @@ export default function IncidenciaList() {
         unidades={unidades}
         isLoadingDependencies={isLoadingDependencies}
         isSubmitLoading={isSubmitLoading}
+        complejoActivo={complejoActivo ?? null}
       />
 
       <Modal

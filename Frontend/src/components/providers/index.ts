@@ -10,3 +10,5 @@
 
 // export { AuthProvider } from './AuthProvider';
 // export { ThemeProvider } from './ThemeProvider';
+export { ConsorcioProvider, useConsorcioActivo } from './ConsorcioContext';
+export type { ConsorcioActivo, ComplejoActivo } from './ConsorcioContext';

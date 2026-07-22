@@ -12,6 +12,7 @@ import { complejoService } from '@/features/complejos/services/complejoService';
 import { ROUTES } from '@/constants';
 import { roleService } from '@/lib/role-service';
 import { USER_ROLES, UserRole } from '@/types/roles';
+import { useConsorcioActivo } from '@/components/providers';
 
 // Helper to decode JWT payload in the client
 function decodeJWT(token: string) {
@@ -43,8 +44,15 @@ export default function Home() {
   const searchParams = useSearchParams();
   const [consorciosCount, setConsorciosCount] = useState<number | null>(null);
   const [complejosCount, setComplejosCount] = useState<number | null>(null);
+  const [consorciosList, setConsorciosList] = useState<any[]>([]);
+  const [complejosList, setComplejosList] = useState<any[]>([]);
+  const [selectedConsorcioId, setSelectedConsorcioId] = useState<string>('');
+  const [selectedComplejoId, setSelectedComplejoId] = useState<string>('');
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
   const [activeRole, setActiveRole] = useState<UserRole>('SuperAdmin');
+
+  // Context global de perfil activo
+  const { consorcioActivo, complejoActivo, setConsorcioActivo, setComplejoActivo } = useConsorcioActivo();
 
   const [profileInfo, setProfileInfo] = useState<{
     username: string;
@@ -118,9 +126,37 @@ export default function Home() {
 
         if (consorciosRes.success && consorciosRes.data) {
           setConsorciosCount(consorciosRes.data.length);
+          setConsorciosList(consorciosRes.data);
+
+          if (consorciosRes.data.length > 0) {
+            // Si ya hay un consorcio activo guardado en el context (localStorage),
+            // usarlo para inicializar el select. Si no, usar el primero como default.
+            const savedConsorcio = consorcioActivo
+              ? consorciosRes.data.find((c: any) => c.idConsorcio === consorcioActivo.id)
+              : null;
+            const toSelect = savedConsorcio ?? consorciosRes.data[0];
+            setSelectedConsorcioId(toSelect.idConsorcio.toString());
+            if (!consorcioActivo) {
+              setConsorcioActivo({ id: toSelect.idConsorcio, nombre: toSelect.nombre });
+            }
+          }
         }
+
         if (complejosRes.success && complejosRes.data) {
           setComplejosCount(complejosRes.data.length);
+          setComplejosList(complejosRes.data);
+
+          if (complejosRes.data.length > 0) {
+            // Mismo criterio: respetar el complejo guardado si existe
+            const savedComplejo = complejoActivo
+              ? complejosRes.data.find((c: any) => c.idComplejo === complejoActivo.id)
+              : null;
+            const toSelect = savedComplejo ?? complejosRes.data[0];
+            setSelectedComplejoId(toSelect.idComplejo.toString());
+            if (!complejoActivo) {
+              setComplejoActivo({ id: toSelect.idComplejo, nombre: toSelect.nombre });
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching dashboard counts:', error);
@@ -130,7 +166,9 @@ export default function Home() {
     }
 
     fetchCounts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const handleLogout = () => {
     roleService.clearActiveRole();
@@ -343,103 +381,205 @@ export default function Home() {
   );
 
   // Render para Consorcio (Gestor de Edificio)
-  const renderConsorcioDashboard = () => (
-    <div className="space-y-8 animate-fade-in">
-      {/* Banner Consorcio */}
-      <section className="relative overflow-hidden rounded-3xl border border-blue-100/60 dark:border-slate-800/50 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-cyan-500/10 p-8 shadow-md transition-all">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                Rol: Consorcio / Administración
-              </span>
-              <button onClick={handleSwitchRole} className="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer">
-                (Cambiar Rol)
-              </button>
+  const renderConsorcioDashboard = () => {
+    // Filtrar complejos según el consorcio seleccionado
+    const complejosDelConsorcio = selectedConsorcioId
+      ? complejosList.filter((c) => c.idConsorcio.toString() === selectedConsorcioId)
+      : complejosList;
+
+    return (
+      <div className="space-y-8 animate-fade-in">
+        {/* Banner Consorcio con Selector de Edificio Activo */}
+        <section className="relative overflow-hidden rounded-3xl border border-blue-100/60 dark:border-slate-800/50 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-cyan-500/10 p-6 sm:p-8 shadow-md transition-all">
+          <div className="flex flex-col gap-6 relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    Rol: Consorcio / Administración
+                  </span>
+                  <button onClick={handleSwitchRole} className="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer">
+                    (Cambiar Rol)
+                  </button>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-800 dark:text-slate-100">
+                  Gestión de Consorcio & Edificios
+                </h2>
+                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-lg leading-relaxed">
+                  Supervisá los edificios a cargo, la administración fiscal del consorcio y la ocupación de amenities.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => router.push(selectedConsorcioId ? `/dashboard/consorcios/${selectedConsorcioId}` : ROUTES.CONSORCIOS)}
+                  className="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-all flex items-center gap-2"
+                >
+                  <span>🏢 Perfil del Consorcio</span>
+                </button>
+              </div>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-800 dark:text-slate-100">
-              Gestión de Consorcio & Edificio
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-sm max-w-lg leading-relaxed">
-              Supervisá las reservas de amenities de los residentes, mantenimientos programados e incidencias del edificio.
-            </p>
+
+            {/* Selector de Consorcio y Edificio Activo */}
+            <div className="p-4 rounded-2xl bg-brand-surface/80 dark:bg-slate-900/80 border border-brand-surface-bright/20 dark:border-white/10 shadow-sm backdrop-blur-md grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  1. Consorcio / Razón Social Activa:
+                </label>
+                <select
+                  value={selectedConsorcioId}
+                  onChange={(e) => {
+                    const newConsorcioId = e.target.value;
+                    setSelectedConsorcioId(newConsorcioId);
+                    const found = consorciosList.find(c => c.idConsorcio.toString() === newConsorcioId);
+                    if (found) setConsorcioActivo({ id: found.idConsorcio, nombre: found.nombre });
+                    const matchingComplejos = complejosList.filter((c) => c.idConsorcio.toString() === newConsorcioId);
+                    if (matchingComplejos.length > 0) {
+                      setSelectedComplejoId(matchingComplejos[0].idComplejo.toString());
+                      setComplejoActivo({ id: matchingComplejos[0].idComplejo, nombre: matchingComplejos[0].nombre });
+                    } else {
+                      setSelectedComplejoId('');
+                      setComplejoActivo(null);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-brand-surface-bright/20 dark:border-white/10 bg-slate-50 dark:bg-slate-950 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
+                >
+                  {consorciosList.length === 0 ? (
+                    <option value="">No hay consorcios registrados</option>
+                  ) : (
+                    consorciosList.map((c) => (
+                      <option key={c.idConsorcio} value={c.idConsorcio.toString()}>
+                        {c.nombre} (CUIT: {c.cuit})
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  2. Edificio / Complejo en Operación:
+                </label>
+                <select
+                  value={selectedComplejoId}
+                  onChange={(e) => {
+                    setSelectedComplejoId(e.target.value);
+                    const found = complejosList.find(c => c.idComplejo.toString() === e.target.value);
+                    if (found) setComplejoActivo({ id: found.idComplejo, nombre: found.nombre });
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-brand-surface-bright/20 dark:border-white/10 bg-slate-50 dark:bg-slate-950 text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
+                >
+                  {complejosDelConsorcio.length === 0 ? (
+                    <option value="">(Todos los edificios del consorcio)</option>
+                  ) : (
+                    complejosDelConsorcio.map((comp) => (
+                      <option key={comp.idComplejo} value={comp.idComplejo.toString()}>
+                        {comp.nombre} ({comp.tipo})
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <button
-            onClick={handleSwitchRole}
-            className="px-4 py-2.5 rounded-2xl bg-brand-surface border border-brand-surface-bright/20 hover:border-brand-primary text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer hover:scale-105 transition-all"
-          >
-            🔄 Cambiar Perfil
-          </button>
-        </div>
-      </section>
+        {/* Tarjetas de Operaciones del Consorcio */}
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 border-b border-brand-surface-bright/20 pb-2">
+            Módulos de Gestión del Consorcio
+          </h3>
 
-      {/* Tarjetas de Operaciones del Consorcio */}
-      <section className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 border-b border-brand-surface-bright/20 pb-2">
-          Gestión del Edificio
-        </h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <DashboardActionCard
+              category="Administración Matriz"
+              title="Consorcios & Perfil Legal"
+              badgeLabel={isLoadingCounts ? 'Cargando...' : `${consorciosCount ?? 0} Consorcios`}
+              badgeStatus="success"
+              description="Administrá tus consorcios, CUITs, personal asignado, suscripciones y métricas."
+              icon={
+                <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              }
+              onClick={() => router.push(ROUTES.CONSORCIOS)}
+            />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DashboardActionCard
-            category="Espacios"
-            title="Amenities del Edificio"
-            badgeLabel="Alta y Gestión"
-            badgeStatus="success"
-            description="Creá y administrá los amenities del consorcio, horarios de uso, cupos y tarifas."
-            icon={
-              <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
-            onClick={() => router.push(ROUTES.AMENITIES_ADMIN)}
-          />
+            <DashboardActionCard
+              category="Inmuebles"
+              title="Edificios & Complejos"
+              badgeLabel={isLoadingCounts ? 'Cargando...' : `${complejosCount ?? 0} Edificios`}
+              badgeStatus="success"
+              description="Visualizá y gestioná la lista de torres y barrios pertenecientes a tus consorcios."
+              icon={
+                <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              }
+              onClick={() => router.push(ROUTES.COMPLEJOS)}
+            />
 
-          <DashboardActionCard
-            category="Residentes"
-            title="Reservas & Aprobaciones"
-            badgeLabel="3 Pendientes"
-            badgeStatus="warning"
-            description="Revisá y aprobá las solicitudes de reservas para SUM y Parrillas."
-            icon={
-              <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            }
-            onClick={() => router.push(ROUTES.RESERVAS_ADMIN)}
-          />
+            <DashboardActionCard
+              category="Espacios"
+              title="Amenities del Edificio"
+              badgeLabel="Alta y Gestión"
+              badgeStatus="success"
+              description="Creá y administrá los amenities del consorcio, horarios de uso, cupos y tarifas."
+              icon={
+                <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+              onClick={() => router.push(ROUTES.AMENITIES_ADMIN)}
+            />
 
-          <DashboardActionCard
-            category="Edificio"
-            title="Incidencias & Tareas"
-            badgeLabel="2 Activas"
-            badgeStatus="error"
-            description="Gestioná los reportes de roturas y reparaciones en áreas comunes."
-            icon={
-              <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              </svg>
-            }
-            onClick={() => router.push(ROUTES.INCIDENCIAS_ADMIN)}
-          />
+            <DashboardActionCard
+              category="Residentes"
+              title="Reservas & Aprobaciones"
+              badgeLabel="3 Pendientes"
+              badgeStatus="warning"
+              description="Revisá y aprobá las solicitudes de reservas para SUM y Parrillas."
+              icon={
+                <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              }
+              onClick={() => router.push(ROUTES.RESERVAS_ADMIN)}
+            />
 
-          <DashboardActionCard
-            category="Inmuebles"
-            title="Unidades Habitacionales"
-            badgeLabel="Administrar"
-            badgeStatus="success"
-            description="Padrón de departamentos y unidades del edificio con sus residentes."
-            icon={
-              <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            }
-            onClick={() => router.push(ROUTES.UNIDADES)}
-          />
-        </div>
-      </section>
-    </div>
-  );
+            <DashboardActionCard
+              category="Edificio"
+              title="Incidencias & Tareas"
+              badgeLabel="2 Activas"
+              badgeStatus="error"
+              description="Gestioná los reportes de roturas y reparaciones en áreas comunes."
+              icon={
+                <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              }
+              onClick={() => router.push(ROUTES.INCIDENCIAS_ADMIN)}
+            />
+
+            <DashboardActionCard
+              category="Inmuebles"
+              title="Unidades Habitacionales"
+              badgeLabel="Administrar"
+              badgeStatus="success"
+              description="Padrón de departamentos y unidades del edificio con sus residentes."
+              icon={
+                <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              }
+              onClick={() => router.push(ROUTES.UNIDADES)}
+            />
+          </div>
+        </section>
+      </div>
+    );
+  };
 
   // Render para Inquilino / Residente
   const renderInquilinoDashboard = () => (

@@ -2,16 +2,18 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Amenity } from '../../amenities/types';
 import type { UnidadHabitacional } from '../../unidades/types';
 import type { Reserva, CreateReservaPayload } from '../types';
+import type { ComplejoActivo } from '@/components/providers';
 import { Modal } from '@/components/ui/Modal';
 import { FormInput } from '@/components/ui/FormInput';
 import { FormSelect } from '@/components/ui/FormSelect';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, Building2 } from 'lucide-react';
 
 const ESTADOS_RESERVA = [
   { value: 'PENDIENTE', label: 'Pendiente' },
@@ -41,6 +43,7 @@ interface ReservaFormModalProps {
   unidades: UnidadHabitacional[];
   isLoadingDependencies: boolean;
   isSubmitLoading: boolean;
+  complejoActivo: ComplejoActivo | null;
 }
 
 export default function ReservaFormModal({
@@ -52,7 +55,9 @@ export default function ReservaFormModal({
   unidades,
   isLoadingDependencies,
   isSubmitLoading,
+  complejoActivo,
 }: ReservaFormModalProps) {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -117,6 +122,7 @@ export default function ReservaFormModal({
   };
 
   const hasMissingDependencies = (amenities.length === 0 || unidades.length === 0) && !isLoadingDependencies;
+  const noComplejoSelected = !complejoActivo && !isLoadingDependencies;
 
   return (
     <Modal
@@ -125,7 +131,37 @@ export default function ReservaFormModal({
       title={initialData ? 'Editar Reserva' : 'Nueva Reserva'}
       maxWidth="md"
     >
-      {hasMissingDependencies ? (
+      {/* Warning: sin complejo seleccionado */}
+      {noComplejoSelected ? (
+        <div className="mt-2 space-y-6 text-center py-4">
+          <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-500 border border-blue-500/20">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <div className="space-y-2">
+            <h4 className="font-bold text-[var(--foreground)]">Seleccioná un Edificio</h4>
+            <p className="text-xs text-gray-500 leading-relaxed max-w-xs mx-auto">
+              Para crear o editar una reserva, primero tenés que seleccionar el
+              <strong> Consorcio</strong> y el <strong>Edificio/Complejo</strong> en el Dashboard.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => { onClose(); router.push('/'); }}
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all"
+            >
+              🏢 Ir al Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-xl border border-[var(--brand-surface-bright)]/30 text-gray-500 hover:text-gray-800 text-sm hover:bg-gray-50 transition-all"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      ) : hasMissingDependencies ? (
         <div className="mt-2 space-y-6 text-center py-4">
           <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto text-amber-500 border border-amber-500/20">
             <AlertTriangle className="w-6 h-6" />

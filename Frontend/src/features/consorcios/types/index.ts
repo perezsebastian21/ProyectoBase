@@ -2,12 +2,21 @@
  * Tipos e Interfaces para el módulo de Consorcios.
  */
 
+export type ConsorcioEstado = 'active' | 'inactive' | 'pending' | 'suspended';
+
 export interface Consorcio {
   idConsorcio: number;
   cuit: string;
   nombre: string;
   email: string;
   telefono: string;
+  direccionLegal?: string;
+  estado?: ConsorcioEstado;
+  cantidadComplejos?: number;
+  cantidadUnidades?: number;
+  adminPrincipal?: string;
+  planSaas?: string;
+  createdAt?: string;
 }
 
 export interface CreateConsorcioPayload {
@@ -15,6 +24,9 @@ export interface CreateConsorcioPayload {
   nombre: string;
   email: string;
   telefono: string;
+  direccionLegal?: string;
+  estado?: ConsorcioEstado;
+  planSaas?: string;
 }
 
 export interface UpdateConsorcioPayload extends CreateConsorcioPayload {
@@ -36,3 +48,4 @@ export interface ConsorciosState {
   limit: number;
   searchQuery: string;
 }
+

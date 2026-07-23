@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [activeTab, setActiveTab] = useState<NavItem | string>('inicio');
 
   // Determinar la pestaña activa basándose en la ruta y los parámetros
@@ -26,28 +26,57 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setActiveTab('consorcios');
     } else if (pathname.startsWith('/dashboard/complejos')) {
       setActiveTab('complejos');
+    } else if (pathname.startsWith('/dashboard/reservas')) {
+      setActiveTab('reservas');
+    } else if (pathname.startsWith('/dashboard/incidencias')) {
+      setActiveTab('incidencias');
+    } else if (pathname.startsWith('/dashboard/amenities')) {
+      setActiveTab('amenities');
     } else {
-      // Si estamos en otra ruta, podríamos no tener nada activo en la navbar
       setActiveTab('');
     }
   }, [pathname, searchParams]);
 
-  // Pantallas que NO deben mostrar el layout global (Auth)
-  const isAuthRoute = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+  // Pantallas que NO deben mostrar el layout global (Auth y Selección de Rol)
+  const isAuthOrRoleRoute =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/select-role';
 
-  if (isAuthRoute) {
+  if (isAuthOrRoleRoute) {
     return <>{children}</>;
   }
 
   const handleTabChange = (tab: NavItem | string) => {
-    if (tab === 'inicio') {
-      router.push('/');
-    } else if (tab === 'consorcios') {
-      router.push(ROUTES.CONSORCIOS);
-    } else if (tab === 'complejos') {
-      router.push(ROUTES.COMPLEJOS);
-    } else if (tab === 'perfil') {
-      router.push('/?tab=perfil');
+    switch (tab) {
+      case 'inicio':
+        router.push('/');
+        break;
+      case 'consorcios':
+        router.push(ROUTES.CONSORCIOS);
+        break;
+      case 'complejos':
+        router.push(ROUTES.COMPLEJOS);
+        break;
+      case 'reservas':
+        router.push(ROUTES.RESERVAS_ADMIN);
+        break;
+      case 'incidencias':
+        router.push(ROUTES.INCIDENCIAS_ADMIN);
+        break;
+      case 'amenities':
+        router.push(ROUTES.AMENITIES_ADMIN);
+        break;
+      case 'pase':
+        router.push('/');
+        break;
+      case 'perfil':
+        router.push('/?tab=perfil');
+        break;
+      default:
+        router.push('/');
+        break;
     }
   };
 
@@ -62,7 +91,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Floating Bottom Navigation */}
+      {/* Floating Bottom Navigation (Adaptativa por rol) */}
       <BottomNavBar activeTab={activeTab} onChange={handleTabChange} />
     </div>
   );

@@ -6,9 +6,11 @@ import { complejoService } from '../services/complejoService';
 import { consorcioService } from '../../consorcios/services/consorcioService';
 import type { Complejo, CreateComplejoPayload, UpdateComplejoPayload } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useConsorcioActivo } from '@/components/providers';
 
 export function useComplejos() {
   const queryClient = useQueryClient();
+  const { consorcioActivo } = useConsorcioActivo();
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -31,7 +33,7 @@ export function useComplejos() {
   const consorcios = consorciosData || [];
 
   const { data: queryData, isLoading, error: queryError } = useQuery({
-    queryKey: ['complejos', page, limit, debouncedSearch, consorcios],
+    queryKey: ['complejos', page, limit, debouncedSearch, consorcioActivo?.id, consorcios],
     queryFn: async () => {
       const response = await complejoService.findQP(page, limit, debouncedSearch);
       if (!response.success) throw new Error(response.errorMessage || 'Error fetching complejos');
@@ -44,9 +46,14 @@ export function useComplejos() {
         };
       });
 
-      return { items: enrichedItems, totalCount: response.data?.totalCount || 0 };
+      // Filtrar por consorcio activo (en cliente)
+      const filteredItems = consorcioActivo
+        ? enrichedItems.filter(c => c.idConsorcio === consorcioActivo.id)
+        : enrichedItems;
+
+      return { items: filteredItems, totalCount: filteredItems.length };
     },
-    enabled: !!consorciosData, // Only fetch when consorcios are ready
+    enabled: !!consorciosData,
   });
 
   const items = queryData?.items || [];

@@ -20,3 +20,4 @@ export * from './FormCheckbox';
 export { default as SegmentedControl } from './SegmentedControl';
 export { default as StatusBadge } from './StatusBadge';
 export { default as TopAppBar } from './TopAppBar';
+export { default as CreateButton } from './CreateButton';

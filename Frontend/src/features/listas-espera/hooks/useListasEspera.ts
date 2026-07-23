@@ -7,9 +7,11 @@ import { amenityService } from '../../amenities/services/amenityService';
 import { unidadService } from '../../unidades/services/unidadService';
 import type { ListaEspera, CreateListaEsperaPayload, UpdateListaEsperaPayload } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useConsorcioActivo } from '@/components/providers';
 
 export function useListasEspera() {
   const queryClient = useQueryClient();
+  const { complejoActivo } = useConsorcioActivo();
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
@@ -40,8 +42,13 @@ export function useListasEspera() {
   const amenities = amenitiesData || [];
   const unidades = unidadesData || [];
 
+  // IDs de amenities del complejo activo
+  const amenityIdsFiltrados = complejoActivo
+    ? new Set(amenities.filter(a => a.idComplejo === complejoActivo.id).map(a => a.idAmenity))
+    : null;
+
   const { data: queryData, isLoading, error: queryError } = useQuery({
-    queryKey: ['listasEspera', page, limit, debouncedSearch, amenities, unidades],
+    queryKey: ['listasEspera', page, limit, debouncedSearch, complejoActivo?.id, amenities, unidades],
     queryFn: async () => {
       const response = await listaEsperaService.findQP(page, limit, debouncedSearch);
       if (!response.success) throw new Error(response.errorMessage || 'Error fetching');
@@ -56,7 +63,12 @@ export function useListasEspera() {
         };
       });
 
-      return { items: enrichedItems, totalCount: response.data?.totalCount || 0 };
+      // Filtrar por complejo activo
+      const filteredItems = amenityIdsFiltrados
+        ? enrichedItems.filter(l => amenityIdsFiltrados.has(l.idAmenity))
+        : enrichedItems;
+
+      return { items: filteredItems, totalCount: filteredItems.length };
     },
     enabled: !!amenitiesData && !!unidadesData,
   });

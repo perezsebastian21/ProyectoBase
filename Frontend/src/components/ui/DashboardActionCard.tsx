@@ -30,36 +30,38 @@ export default function DashboardActionCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative p-5 rounded-2xl border border-brand-surface-bright/20 bg-brand-surface dark:bg-brand-surface-container/40 hover:bg-blue-50/40 dark:hover:bg-brand-surface-bright/10 hover:border-brand-primary/30 shadow-sm hover:shadow-[0_12px_30px_rgba(37,99,235,0.06)] dark:hover:shadow-none transition-all duration-300 backdrop-blur-md cursor-pointer select-none`}
+      className={`group relative p-5 rounded-2xl border border-brand-surface-bright/20 bg-brand-surface dark:bg-brand-surface-container/40 hover:bg-blue-50/40 dark:hover:bg-brand-surface-bright/10 hover:border-brand-primary/30 shadow-sm hover:shadow-[0_12px_30px_rgba(37,99,235,0.06)] dark:hover:shadow-none transition-all duration-300 backdrop-blur-md cursor-pointer select-none flex flex-col h-full`}
     >
       {/* Glow gradient border reflection */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-primary/0 via-brand-primary/0 to-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="flex items-start justify-between mb-4">
-        {/* Category & Status */}
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+      <div className="flex items-start justify-between mb-3 gap-3">
+        {/* Category & Title */}
+        <div className="space-y-1 flex-1">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">
             {category}
           </span>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 group-hover:dark:text-white transition-colors duration-200">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 group-hover:dark:text-white transition-colors duration-200 leading-tight pr-2">
             {title}
           </h3>
         </div>
 
-        {/* Badge & Icon container */}
-        <div className="flex items-center gap-3">
-          <StatusBadge status={badgeStatus} label={badgeLabel} />
-          {icon && (
-            <div className="p-2 rounded-xl bg-brand-surface-bright/10 border border-brand-surface-bright/15 text-slate-500 dark:text-slate-400 group-hover:text-brand-primary group-hover:border-brand-primary/30 transition-all duration-300">
-              {icon}
-            </div>
-          )}
-        </div>
+        {/* Icon only */}
+        {icon && (
+          <div className="p-2 rounded-xl bg-brand-surface-bright/10 border border-brand-surface-bright/15 text-slate-500 dark:text-slate-400 group-hover:text-brand-primary group-hover:border-brand-primary/30 transition-all duration-300 shrink-0">
+            {icon}
+          </div>
+        )}
+      </div>
+
+      {/* Status Badge below */}
+      <div className="mb-4 flex items-center">
+        <StatusBadge status={badgeStatus} label={badgeLabel} />
       </div>
 
       {/* Optional Description */}
       {description && (
-        <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed group-hover:text-slate-800 dark:group-hover:text-slate-300 transition-colors duration-200">
+        <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed group-hover:text-slate-800 dark:group-hover:text-slate-300 transition-colors duration-200 mt-auto">
           {description}
         </p>
       )}

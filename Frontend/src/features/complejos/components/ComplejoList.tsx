@@ -126,13 +126,13 @@ export default function ComplejoList() {
         
         <div className="flex items-center gap-3">
           {/* Switch de Vista: Bento vs Tabla */}
-          <div className="p-1 rounded-2xl bg-slate-900 border border-white/10 flex items-center gap-1">
+          <div className="p-1 rounded-2xl bg-slate-200 dark:bg-slate-900 border border-slate-300/60 dark:border-white/10 flex items-center gap-1">
             <button
               onClick={() => setViewMode('bento')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'bento'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -143,7 +143,7 @@ export default function ComplejoList() {
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -157,33 +157,33 @@ export default function ComplejoList() {
 
       {/* KPI Cards de Complejos */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-md flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-cyan-500/20 backdrop-blur-md flex items-center gap-3 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
             <Building className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold uppercase text-cyan-400">Total Complejos</div>
-            <div className="text-xl font-black text-white">{totalCount}</div>
+            <div className="text-[11px] font-bold uppercase text-cyan-600 dark:text-cyan-400">Total Complejos</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white">{totalCount}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-blue-500/20 backdrop-blur-md flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-blue-500/20 backdrop-blur-md flex items-center gap-3 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold uppercase text-blue-400">Consorcios Vinculados</div>
-            <div className="text-xl font-black text-white">{consorcios.length}</div>
+            <div className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400">Consorcios Vinculados</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white">{consorcios.length}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-indigo-500/20 backdrop-blur-md flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-indigo-500/20 backdrop-blur-md flex items-center gap-3 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
             <HomeIcon className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-bold uppercase text-indigo-400">Torres / Edificios</div>
-            <div className="text-xl font-black text-white">{torresCount || totalCount}</div>
+            <div className="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">Torres / Edificios</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white">{torresCount || totalCount}</div>
           </div>
         </div>
       </div>
@@ -248,54 +248,54 @@ export default function ComplejoList() {
         /* VISTA TARJETAS BENTO DE COMPLEJOS */
         <div className="space-y-4">
           {items.length === 0 ? (
-            <div className="text-center py-12 space-y-2 border border-dashed border-white/10 rounded-3xl">
-              <Building className="w-10 h-10 text-slate-500 mx-auto" />
-              <p className="text-sm font-bold text-slate-300">No hay complejos registrados.</p>
+            <div className="text-center py-12 space-y-2 border border-dashed border-slate-300 dark:border-white/10 rounded-3xl">
+              <Building className="w-10 h-10 text-slate-400 mx-auto" />
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-300">No hay complejos registrados.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {items.map((complejo) => (
                 <div
                   key={complejo.idComplejo}
-                  className="p-6 rounded-3xl bg-slate-950/80 border border-white/10 hover:border-cyan-500/30 transition-all space-y-4 shadow-xl backdrop-blur-md relative group flex flex-col justify-between"
+                  className="p-6 rounded-3xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 hover:border-cyan-500/30 transition-all space-y-4 shadow-sm dark:shadow-xl backdrop-blur-md relative group flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-600/20 to-blue-600/20 text-cyan-400 flex items-center justify-center font-extrabold text-sm border border-cyan-500/20">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-600/20 to-blue-600/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-extrabold text-sm border border-cyan-500/20">
                           <Building className="w-6 h-6" />
                         </div>
                         <div>
-                          <h4 className="text-base font-black text-white">{complejo.nombre}</h4>
-                          <span className="text-xs font-semibold text-blue-400">{complejo.nombreConsorcio}</span>
+                          <h4 className="text-base font-black text-slate-800 dark:text-white">{complejo.nombre}</h4>
+                          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{complejo.nombreConsorcio}</span>
                         </div>
                       </div>
 
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-slate-900 border border-white/10 text-slate-300">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
                         {complejo.tipo}
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/5 space-y-2 text-xs text-slate-300">
+                    <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 space-y-2 text-xs text-slate-600 dark:text-slate-300">
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
                         <span className="truncate">{complejo.direccion}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Acciones Rápidas & Enlaces */}
-                  <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => router.push(ROUTES.AMENITIES_ADMIN)}
-                        className="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                       >
                         <Sparkles className="w-3.5 h-3.5" /> Amenities
                       </button>
                       <button
                         onClick={() => router.push(ROUTES.UNIDADES)}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                       >
                         <HomeIcon className="w-3.5 h-3.5" /> Unidades
                       </button>
@@ -304,14 +304,14 @@ export default function ComplejoList() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEdit(complejo)}
-                        className="p-2 text-slate-400 hover:text-blue-400 transition-colors"
+                        className="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                         title="Editar"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleOpenDelete(complejo)}
-                        className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                        className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         title="Eliminar"
                       >
                         <Trash2 className="w-4 h-4" />

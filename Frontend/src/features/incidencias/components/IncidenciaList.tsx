@@ -156,13 +156,13 @@ export default function IncidenciaList() {
         
         <div className="flex items-center gap-3">
           {/* Switch de Vista: Tabla vs Kanban */}
-          <div className="p-1 rounded-2xl bg-slate-900 border border-white/10 flex items-center gap-1">
+          <div className="p-1 rounded-2xl bg-slate-200 dark:bg-slate-900 border border-slate-300/60 dark:border-white/10 flex items-center gap-1">
             <button
               onClick={() => setViewMode('kanban')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'kanban'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -173,7 +173,7 @@ export default function IncidenciaList() {
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -249,12 +249,12 @@ export default function IncidenciaList() {
             return (
               <div
                 key={col.id}
-                className="rounded-3xl border border-white/10 bg-slate-900/40 p-4 space-y-3 backdrop-blur-md min-h-[400px] flex flex-col"
+                className="rounded-3xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/40 p-4 space-y-3 backdrop-blur-md min-h-[400px] flex flex-col"
               >
                 {/* Column Header */}
                 <div className={`p-3 rounded-2xl border ${col.color} flex items-center justify-between font-bold text-xs uppercase tracking-wider`}>
                   <span>{col.title}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-950/80 text-white text-[11px]">
+                  <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-950/80 text-slate-700 dark:text-white text-[11px]">
                     {colItems.length}
                   </span>
                 </div>
@@ -262,30 +262,30 @@ export default function IncidenciaList() {
                 {/* Column Items */}
                 <div className="space-y-3 flex-1 overflow-y-auto max-h-[600px] pr-1">
                   {colItems.length === 0 ? (
-                    <div className="text-center py-10 text-xs text-slate-500 border border-dashed border-white/10 rounded-2xl">
+                    <div className="text-center py-10 text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-white/10 rounded-2xl">
                       Sin incidencias en esta columna
                     </div>
                   ) : (
                     colItems.map((inc) => (
                       <div
                         key={inc.idIncidencia}
-                        className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 hover:border-blue-500/40 transition-all space-y-3 shadow-md group relative"
+                        className="p-4 rounded-2xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 hover:border-blue-500/40 transition-all space-y-3 shadow-sm dark:shadow-md group relative"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className="text-xs font-bold text-white leading-snug line-clamp-2">
+                          <span className="text-xs font-bold text-slate-800 dark:text-white leading-snug line-clamp-2">
                             {inc.descripcion}
                           </span>
                           <div className="flex items-center gap-1 shrink-0">
                             <button
                               onClick={() => handleOpenEdit(inc)}
-                              className="p-1 text-slate-400 hover:text-blue-400 transition-colors"
+                              className="p-1 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                               title="Editar"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleOpenDelete(inc)}
-                              className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+                              className="p-1 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                               title="Eliminar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -293,9 +293,9 @@ export default function IncidenciaList() {
                           </div>
                         </div>
 
-                        <div className="space-y-1 text-[11px] text-slate-400">
-                          <div className="flex items-center gap-1.5 text-slate-300">
-                            <Building className="w-3.5 h-3.5 text-blue-400" />
+                        <div className="space-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                            <Building className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                             <span>{inc.nombreAmenity || 'Área Común'}</span>
                           </div>
                           <div className="flex items-center justify-between">
@@ -303,7 +303,7 @@ export default function IncidenciaList() {
                               {inc.nombreUnidad || 'Unidad'}
                             </span>
                             {inc.costoEstimado && (
-                              <span className="font-mono text-emerald-400 font-bold">
+                              <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                                 ${inc.costoEstimado}
                               </span>
                             )}
@@ -311,11 +311,11 @@ export default function IncidenciaList() {
                         </div>
 
                         {/* Quick Kanban Actions */}
-                        <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-1 text-[10px]">
+                        <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-1 text-[10px]">
                           {col.id === 'REPORTADA' && (
                             <button
                               onClick={() => handleQuickStatusChange(inc, 'EN_REVISION')}
-                              className="w-full py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                              className="w-full py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
                             >
                               <span>Revisar</span> <ArrowRight className="w-3 h-3" />
                             </button>
@@ -323,7 +323,7 @@ export default function IncidenciaList() {
                           {col.id === 'EN_REVISION' && (
                             <button
                               onClick={() => handleQuickStatusChange(inc, 'EN_REPARACION')}
-                              className="w-full py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 border border-purple-500/30 font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                              className="w-full py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
                             >
                               <span>En Reparación</span> <ArrowRight className="w-3 h-3" />
                             </button>
@@ -331,13 +331,13 @@ export default function IncidenciaList() {
                           {col.id === 'EN_REPARACION' && (
                             <button
                               onClick={() => handleQuickStatusChange(inc, 'RESUELTA')}
-                              className="w-full py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                              className="w-full py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
                             >
                               <CheckCircle2 className="w-3 h-3" /> <span>Resolver</span>
                             </button>
                           )}
                           {col.id === 'RESUELTA' && (
-                            <span className="text-emerald-400 font-semibold flex items-center gap-1 mx-auto">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mx-auto">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Completado
                             </span>
                           )}

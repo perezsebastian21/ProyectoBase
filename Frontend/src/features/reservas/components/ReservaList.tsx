@@ -176,13 +176,13 @@ export default function ReservaList() {
         
         <div className="flex items-center gap-3">
           {/* Switch de Vista: Tabla vs Agenda */}
-          <div className="p-1 rounded-2xl bg-slate-900 border border-white/10 flex items-center gap-1">
+          <div className="p-1 rounded-2xl bg-slate-200 dark:bg-slate-900 border border-slate-300/60 dark:border-white/10 flex items-center gap-1">
             <button
               onClick={() => setViewMode('agenda')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'agenda'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
@@ -193,7 +193,7 @@ export default function ReservaList() {
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -207,33 +207,33 @@ export default function ReservaList() {
 
       {/* KPI Cards de Reservas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-emerald-500/20 backdrop-blur-md flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-emerald-500/20 backdrop-blur-md flex items-center gap-3 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs font-bold uppercase text-emerald-400">Aprobadas</div>
-            <div className="text-xl font-black text-white">{aprobadasCount}</div>
+            <div className="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">Aprobadas</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white">{aprobadasCount}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-amber-500/20 backdrop-blur-md flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-amber-500/20 backdrop-blur-md flex items-center gap-3 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs font-bold uppercase text-amber-400">Pendientes</div>
-            <div className="text-xl font-black text-white">{pendientesCount}</div>
+            <div className="text-xs font-bold uppercase text-amber-600 dark:text-amber-400">Pendientes</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white">{pendientesCount}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-red-500/20 backdrop-blur-md flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-red-500/20 backdrop-blur-md flex items-center gap-3 shadow-sm">
+          <div className="p-2.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs font-bold uppercase text-red-400">Rechazadas / Canceladas</div>
-            <div className="text-xl font-black text-white">{rechazadasCount}</div>
+            <div className="text-xs font-bold uppercase text-red-600 dark:text-red-400">Rechazadas / Canceladas</div>
+            <div className="text-xl font-black text-slate-800 dark:text-white">{rechazadasCount}</div>
           </div>
         </div>
       </div>
@@ -298,9 +298,9 @@ export default function ReservaList() {
         /* VISTA AGENDA DE RESERVAS */
         <div className="space-y-4">
           {items.length === 0 ? (
-            <div className="text-center py-12 space-y-2 border border-dashed border-white/10 rounded-3xl">
-              <Calendar className="w-10 h-10 text-slate-500 mx-auto" />
-              <p className="text-sm font-bold text-slate-300">No hay reservas registradas en este período.</p>
+            <div className="text-center py-12 space-y-2 border border-dashed border-slate-300 dark:border-white/10 rounded-3xl">
+              <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
+              <p className="text-sm font-bold text-slate-500 dark:text-slate-300">No hay reservas registradas en este período.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -316,16 +316,16 @@ export default function ReservaList() {
                 return (
                   <div
                     key={reserva.idReserva}
-                    className="p-5 rounded-3xl bg-slate-950/80 border border-white/10 hover:border-blue-500/30 transition-all space-y-4 shadow-lg backdrop-blur-md relative group"
+                    className="p-5 rounded-3xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 hover:border-blue-500/30 transition-all space-y-4 shadow-sm dark:shadow-lg backdrop-blur-md relative group"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                           <Sparkles className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-white">{reserva.nombreAmenity}</h4>
-                          <span className="text-[11px] text-slate-400">{reserva.nombreUnidad}</span>
+                          <h4 className="text-sm font-bold text-slate-800 dark:text-white">{reserva.nombreAmenity}</h4>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">{reserva.nombreUnidad}</span>
                         </div>
                       </div>
 
@@ -334,23 +334,23 @@ export default function ReservaList() {
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/5 space-y-1.5 text-xs text-slate-300">
+                    <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Fecha:</span>
-                        <span className="font-bold text-white">{dateStr}</span>
+                        <span className="text-slate-500 dark:text-slate-400">Fecha:</span>
+                        <span className="font-bold text-slate-800 dark:text-white">{dateStr}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Horario:</span>
-                        <span className="font-mono text-blue-400 font-semibold">{start} a {end} hs</span>
+                        <span className="text-slate-500 dark:text-slate-400">Horario:</span>
+                        <span className="font-mono text-blue-600 dark:text-blue-400 font-semibold">{start} a {end} hs</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Asistentes:</span>
-                        <span className="font-bold text-white">{reserva.cantidadInvitados || 1} personas</span>
+                        <span className="text-slate-500 dark:text-slate-400">Asistentes:</span>
+                        <span className="font-bold text-slate-800 dark:text-white">{reserva.cantidadInvitados || 1} personas</span>
                       </div>
                     </div>
 
                     {/* Acciones de 1-Click en la Agenda */}
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                    <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
                       {reserva.estado === 'PENDIENTE' ? (
                         <div className="flex items-center gap-2 w-full">
                           <button
@@ -361,7 +361,7 @@ export default function ReservaList() {
                           </button>
                           <button
                             onClick={() => handleQuickStatusChange(reserva, 'RECHAZADA')}
-                            className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-red-950/50 hover:text-red-400 border border-white/10 text-slate-300 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <XCircle className="w-3.5 h-3.5" /> Rechazar
                           </button>
@@ -370,13 +370,13 @@ export default function ReservaList() {
                         <div className="flex items-center justify-end gap-2 w-full">
                           <button
                             onClick={() => handleOpenEdit(reserva)}
-                            className="px-3 py-1.5 rounded-xl border border-white/10 text-slate-400 hover:text-white text-xs font-semibold cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-semibold cursor-pointer"
                           >
                             Editar
                           </button>
                           <button
                             onClick={() => handleOpenDelete(reserva)}
-                            className="px-3 py-1.5 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-semibold cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl border border-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500/10 text-xs font-semibold cursor-pointer"
                           >
                             Eliminar
                           </button>

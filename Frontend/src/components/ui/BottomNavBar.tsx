@@ -105,7 +105,7 @@ export default function BottomNavBar({ activeTab, onChange, role: propRole }: Bo
   const items = roleNavItems[activeRole] || roleNavItems.SuperAdmin;
 
   return (
-    <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-3">
+    <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-[calc(100%-1.5rem)] sm:max-w-md px-0">
       <div className="flex items-center justify-around py-1.5 px-2 rounded-full border border-slate-200/50 dark:border-white/10 bg-white/70 dark:bg-slate-950/45 backdrop-blur-2xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] shadow-[0_0_50px_-10px_rgba(59,130,246,0.08)] dark:shadow-[0_0_50px_-10px_rgba(59,130,246,0.15)] transition-all duration-300">
         {items.map((item) => {
           const isActive = activeTab === item.id;
@@ -113,7 +113,7 @@ export default function BottomNavBar({ activeTab, onChange, role: propRole }: Bo
             <button
               key={item.id}
               onClick={() => onChange(item.id)}
-              className="relative flex flex-col items-center justify-center py-1.5 px-3.5 rounded-full cursor-pointer transition-all duration-300 active:scale-95 group"
+              className="relative flex flex-col items-center justify-center py-1.5 px-2 sm:px-3.5 rounded-full cursor-pointer transition-all duration-300 active:scale-95 group"
             >
               {/* Modern floating pill background highlight */}
               {isActive && (

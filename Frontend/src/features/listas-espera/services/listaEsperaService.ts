@@ -1,22 +1,33 @@
 import { apiClient } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/constants';
-import type { ApiResponse } from '@/types';
+import type { ServiceResponse, ListaEspera } from '@/types';
 import type {
-  ListaEspera,
   CreateListaEsperaPayload,
   UpdateListaEsperaPayload
 } from '../types';
 
 export const listaEsperaService = {
-  async getAll(): Promise<ApiResponse<ListaEspera[]>> {
-    return apiClient<ApiResponse<ListaEspera[]>>(API_ENDPOINTS.LISTA_ESPERA.GET_ALL, {
+  async getAll(): Promise<ServiceResponse<ListaEspera[]>> {
+    return apiClient<ServiceResponse<ListaEspera[]>>(API_ENDPOINTS.LISTA_ESPERA.GET_ALL, {
       method: 'GET',
     });
   },
 
-  async getById(id: number): Promise<ApiResponse<ListaEspera>> {
-    return apiClient<ApiResponse<ListaEspera>>(API_ENDPOINTS.LISTA_ESPERA.GET_BY_ID(id), {
+  async getMisAnotaciones(): Promise<ServiceResponse<ListaEspera[]>> {
+    return apiClient<ServiceResponse<ListaEspera[]>>('/ListaEspera/MisAnotaciones', {
       method: 'GET',
+    });
+  },
+
+  async getById(id: number): Promise<ServiceResponse<ListaEspera>> {
+    return apiClient<ServiceResponse<ListaEspera>>(API_ENDPOINTS.LISTA_ESPERA.GET_BY_ID(id), {
+      method: 'GET',
+    });
+  },
+
+  async confirmarHold(idListaEspera: number): Promise<ServiceResponse<any>> {
+    return apiClient<ServiceResponse<any>>(`/ListaEspera/${idListaEspera}/Confirmar`, {
+      method: 'POST',
     });
   },
 
@@ -24,7 +35,7 @@ export const listaEsperaService = {
     page: number,
     limit: number,
     search: string = ''
-  ): Promise<ApiResponse<{ items: ListaEspera[]; totalCount: number }>> {
+  ): Promise<{ success: boolean; errorMessage: string | null; data: { items: ListaEspera[]; totalCount: number } }> {
     const queryParams = new URLSearchParams({
       Page: page.toString(),
       Limit: limit.toString(),
@@ -69,22 +80,22 @@ export const listaEsperaService = {
     };
   },
 
-  async create(payload: CreateListaEsperaPayload): Promise<ApiResponse<ListaEspera>> {
-    return apiClient<ApiResponse<ListaEspera>>(API_ENDPOINTS.LISTA_ESPERA.CREATE, {
+  async create(payload: CreateListaEsperaPayload): Promise<ServiceResponse<ListaEspera>> {
+    return apiClient<ServiceResponse<ListaEspera>>(API_ENDPOINTS.LISTA_ESPERA.CREATE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
-  async update(payload: UpdateListaEsperaPayload): Promise<ApiResponse<ListaEspera>> {
-    return apiClient<ApiResponse<ListaEspera>>(API_ENDPOINTS.LISTA_ESPERA.UPDATE, {
+  async update(payload: UpdateListaEsperaPayload): Promise<ServiceResponse<ListaEspera>> {
+    return apiClient<ServiceResponse<ListaEspera>>(API_ENDPOINTS.LISTA_ESPERA.UPDATE, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
   },
 
-  async delete(id: number): Promise<ApiResponse<boolean>> {
-    return apiClient<ApiResponse<boolean>>(API_ENDPOINTS.LISTA_ESPERA.DELETE(id), {
+  async delete(id: number): Promise<ServiceResponse<boolean>> {
+    return apiClient<ServiceResponse<boolean>>(API_ENDPOINTS.LISTA_ESPERA.DELETE(id), {
       method: 'DELETE',
     });
   },

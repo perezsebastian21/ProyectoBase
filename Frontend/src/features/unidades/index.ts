@@ -1,5 +1,3 @@
-export * from './types';
-export * from './services/unidadService';
-export * from './hooks/useUnidades';
-export { default as UnidadList } from './components/UnidadList';
-export { default as UnidadFormModal } from './components/UnidadFormModal';
+export { unidadService } from './services/unidadService';
+export { SancionarUnidadModal } from './components/SancionarUnidadModal';
+export type { SancionPayload } from './services/unidadService';

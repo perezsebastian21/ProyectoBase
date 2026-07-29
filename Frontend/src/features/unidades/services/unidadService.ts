@@ -1,22 +1,35 @@
 import { apiClient } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/constants';
-import type { ApiResponse } from '@/types';
+import type { ServiceResponse, UnidadHabitacional } from '@/types';
 import type {
-  UnidadHabitacional,
   CreateUnidadPayload,
   UpdateUnidadPayload
 } from '../types';
 
+export interface SancionPayload {
+  idUnidadHabitacional: number;
+  descripcion: string;
+  aplicarSuspension: boolean;
+  duracionDias: number;
+}
+
 export const unidadService = {
-  async getAll(): Promise<ApiResponse<UnidadHabitacional[]>> {
-    return apiClient<ApiResponse<UnidadHabitacional[]>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.GET_ALL, {
+  async getAll(): Promise<ServiceResponse<UnidadHabitacional[]>> {
+    return apiClient<ServiceResponse<UnidadHabitacional[]>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.GET_ALL, {
       method: 'GET',
     });
   },
 
-  async getById(id: number): Promise<ApiResponse<UnidadHabitacional>> {
-    return apiClient<ApiResponse<UnidadHabitacional>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.GET_BY_ID(id), {
+  async getById(id: number): Promise<ServiceResponse<UnidadHabitacional>> {
+    return apiClient<ServiceResponse<UnidadHabitacional>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.GET_BY_ID(id), {
       method: 'GET',
+    });
+  },
+
+  async sancionar(payload: SancionPayload): Promise<ServiceResponse<any>> {
+    return apiClient<ServiceResponse<any>>('/UnidadHabitacional/Sancionar', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   },
 
@@ -24,7 +37,7 @@ export const unidadService = {
     page: number,
     limit: number,
     search: string = ''
-  ): Promise<ApiResponse<{ items: UnidadHabitacional[]; totalCount: number }>> {
+  ): Promise<{ success: boolean; errorMessage: string | null; data: { items: UnidadHabitacional[]; totalCount: number } }> {
     const queryParams = new URLSearchParams({
       Page: page.toString(),
       Limit: limit.toString(),
@@ -69,22 +82,22 @@ export const unidadService = {
     };
   },
 
-  async create(payload: CreateUnidadPayload): Promise<ApiResponse<UnidadHabitacional>> {
-    return apiClient<ApiResponse<UnidadHabitacional>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.CREATE, {
+  async create(payload: CreateUnidadPayload): Promise<ServiceResponse<UnidadHabitacional>> {
+    return apiClient<ServiceResponse<UnidadHabitacional>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.CREATE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
-  async update(payload: UpdateUnidadPayload): Promise<ApiResponse<UnidadHabitacional>> {
-    return apiClient<ApiResponse<UnidadHabitacional>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.UPDATE, {
+  async update(payload: UpdateUnidadPayload): Promise<ServiceResponse<UnidadHabitacional>> {
+    return apiClient<ServiceResponse<UnidadHabitacional>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.UPDATE, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
   },
 
-  async delete(id: number): Promise<ApiResponse<boolean>> {
-    return apiClient<ApiResponse<boolean>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.DELETE(id), {
+  async delete(id: number): Promise<ServiceResponse<boolean>> {
+    return apiClient<ServiceResponse<boolean>>(API_ENDPOINTS.UNIDAD_HABITACIONAL.DELETE(id), {
       method: 'DELETE',
     });
   },

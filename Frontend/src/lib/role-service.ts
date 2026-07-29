@@ -3,6 +3,18 @@ import { UserRole } from '@/types/roles';
 const ROLE_COOKIE_NAME = 'auth_role';
 const ROLE_STORAGE_KEY = 'auth_role';
 
+const VALID_ROLES: UserRole[] = [
+  'SUPER_ADMINISTRADOR',
+  'ADMINISTRADOR_AVANZADO',
+  'ADMINISTRADOR_LIVIANO',
+  'GUARDIA',
+  'INQUILINO',
+  'PROPIETARIO',
+  'INVITADO',
+  'SuperAdmin',
+  'Consorcio'
+];
+
 export const roleService = {
   /**
    * Obtiene el rol activo guardado (de cookie o localStorage)
@@ -14,14 +26,14 @@ export const roleService = {
     const match = document.cookie.match(new RegExp('(^| )' + ROLE_COOKIE_NAME + '=([^;]+)'));
     if (match && match[2]) {
       const role = match[2] as UserRole;
-      if (['SuperAdmin', 'Consorcio', 'Inquilino', 'Invitado'].includes(role)) {
+      if (VALID_ROLES.includes(role)) {
         return role;
       }
     }
 
     // 2. Intentar leer de LocalStorage
     const storedRole = localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
-    if (storedRole && ['SuperAdmin', 'Consorcio', 'Inquilino', 'Invitado'].includes(storedRole)) {
+    if (storedRole && VALID_ROLES.includes(storedRole)) {
       return storedRole;
     }
 

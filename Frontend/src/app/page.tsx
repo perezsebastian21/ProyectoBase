@@ -523,12 +523,37 @@ export default function Home() {
     switch (currentTab) {
       case 'inicio':
         switch (activeRole) {
+          case 'ADMINISTRADOR_AVANZADO':
           case 'Consorcio':
             return renderConsorcioDashboard();
-          case 'Inquilino':
+          case 'ADMINISTRADOR_LIVIANO':
+          case 'GUARDIA':
+            return (
+              <div className="max-w-4xl mx-auto p-4">
+                <Link
+                  href="/dashboard/acceso"
+                  className="block p-6 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold shadow-lg hover:opacity-95 transition-opacity text-center text-lg"
+                >
+                  Abrir Terminal de Portería y Control de Acceso (CU-03) →
+                </Link>
+              </div>
+            );
+          case 'PROPIETARIO':
+            return (
+              <div className="max-w-4xl mx-auto p-4">
+                <Link
+                  href="/dashboard/mis-unidades"
+                  className="block p-6 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold shadow-lg hover:opacity-95 transition-opacity text-center text-lg"
+                >
+                  Abrir Panel de Supervisión Multi-Unidad →
+                </Link>
+              </div>
+            );
+          case 'INQUILINO':
             return renderInquilinoDashboard();
-          case 'Invitado':
+          case 'INVITADO':
             return renderInvitadoDashboard();
+          case 'SUPER_ADMINISTRADOR':
           case 'SuperAdmin':
           default:
             return renderSuperAdminDashboard();

@@ -2,12 +2,6 @@
  * Application Routes
  *
  * Definición centralizada de todas las rutas de la aplicación.
- * Usar estas constantes en lugar de strings hardcodeados.
- *
- * Uso:
- *   import { ROUTES } from '@/constants';
- *   router.push(ROUTES.AMENITIES);
- *   router.push(ROUTES.AMENITY_DETAIL('123'));
  */
 
 export const ROUTES = {
@@ -15,24 +9,16 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
+  SELECT_ROLE: '/select-role',
 
   // Main
   HOME: '/',
   DASHBOARD: '/',
 
-  // Amenities
-  AMENITIES: '/amenities',
-  AMENITY_DETAIL: (id: string) => `/amenities/${id}` as const,
-
-  // Incidents
-  INCIDENTS: '/incidents',
-  INCIDENT_DETAIL: (id: string) => `/incidents/${id}` as const,
-  INCIDENT_NEW: '/incidents/new',
-
-  // Reservations
-  RESERVATIONS: '/reservations',
-  RESERVATION_DETAIL: (id: string) => `/reservations/${id}` as const,
-  RESERVATION_NEW: '/reservations/new',
+  // Amenities & Residentes (CU-12 / CU-01 / CU-05)
+  DISPONIBILIDAD: '/dashboard/disponibilidad',
+  ACCESO: '/dashboard/acceso',
+  MIS_UNIDADES: '/dashboard/mis-unidades',
 
   // Settings
   SETTINGS: '/settings',
@@ -42,10 +28,10 @@ export const ROUTES = {
   CONSORCIOS: '/dashboard/consorcios',
   COMPLEJOS: '/dashboard/complejos',
 
-  // Nuevos ABM
+  // ABMs & Módulos
   PERSONAS: '/dashboard/personas',
   UNIDADES: '/dashboard/unidades',
-  INQUILILNOS: '/dashboard/inquilinos',
+  INQUILINOS: '/dashboard/inquilinos',
   INVITADOS: '/dashboard/invitados',
   AMENITIES_ADMIN: '/dashboard/amenities',
   AMENITY_CONFIG: '/dashboard/amenity-config',

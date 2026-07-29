@@ -19,10 +19,14 @@ import {
   Sparkles,
   Building,
   Check,
-  X
+  X,
+  CreditCard
 } from 'lucide-react';
+import { CheckoutPagoModal } from '@/features/pagos';
 
 export default function ReservaList() {
+  const [reservaPagoTarget, setReservaPagoTarget] = useState<Reserva | null>(null);
+
   const {
     items,
     totalCount,
@@ -351,7 +355,14 @@ export default function ReservaList() {
 
                     {/* Acciones de 1-Click en la Agenda */}
                     <div className="pt-2 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
-                      {reserva.estado === 'PENDIENTE' ? (
+                      {reserva.estado === 'PENDIENTE_PAGO' ? (
+                        <button
+                          onClick={() => setReservaPagoTarget(reserva)}
+                          className="w-full py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" /> Pagar Reserva (CU-07)
+                        </button>
+                      ) : reserva.estado === 'PENDIENTE' ? (
                         <div className="flex items-center gap-2 w-full">
                           <button
                             onClick={() => handleQuickStatusChange(reserva, 'APROBADA')}
@@ -433,6 +444,16 @@ export default function ReservaList() {
           </div>
         </div>
       </Modal>
+
+      {reservaPagoTarget && (
+        <CheckoutPagoModal
+          isOpen={!!reservaPagoTarget}
+          onClose={() => setReservaPagoTarget(null)}
+          idReserva={reservaPagoTarget.idReserva}
+          nombreAmenity={reservaPagoTarget.nombreAmenity || 'Amenity'}
+          montoTotal={5000}
+        />
+      )}
     </div>
   );
 }

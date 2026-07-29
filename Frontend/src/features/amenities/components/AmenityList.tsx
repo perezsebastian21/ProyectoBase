@@ -20,8 +20,10 @@ import {
   Building,
   Edit2,
   Trash2,
-  Sliders
+  Sliders,
+  Ban
 } from 'lucide-react';
+import { CancelacionMasivaModal } from './CancelacionMasivaModal';
 
 export default function AmenityList() {
   const router = useRouter();
@@ -57,6 +59,7 @@ export default function AmenityList() {
 
   // Switch de vista: 'grid' o 'table'
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [cancelacionMasivaTarget, setCancelacionMasivaTarget] = useState<Amenity | null>(null);
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
@@ -301,30 +304,40 @@ export default function AmenityList() {
                     </div>
 
                     {/* Acciones Rápidas */}
-                    <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
-                      <button
-                        onClick={() => router.push(ROUTES.AMENITY_CONFIG)}
-                        className="px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Sliders className="w-3.5 h-3.5" /> Configurar Reglas
-                      </button>
+                    <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex flex-col gap-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          onClick={() => router.push(ROUTES.AMENITY_CONFIG)}
+                          className="px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-600 dark:text-blue-400 border border-blue-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Sliders className="w-3.5 h-3.5" /> Configurar Reglas
+                        </button>
 
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleOpenEdit(amenity)}
-                          className="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenDelete(amenity)}
-                          className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleOpenEdit(amenity)}
+                            className="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                            title="Editar"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenDelete(amenity)}
+                            className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
+
+                      <button
+                        onClick={() => setCancelacionMasivaTarget(amenity)}
+                        className="w-full py-1.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        title="Declarar fuera de servicio con cancelación masiva (CU-14)"
+                      >
+                        <Ban className="w-3.5 h-3.5" /> Declarar Fuera de Servicio (CU-14)
+                      </button>
                     </div>
                   </div>
                 );
@@ -374,6 +387,16 @@ export default function AmenityList() {
           </div>
         </div>
       </Modal>
+
+      {/* Modal Cancelación Masiva por Fuera de Servicio (CU-14) */}
+      {cancelacionMasivaTarget && (
+        <CancelacionMasivaModal
+          isOpen={!!cancelacionMasivaTarget}
+          onClose={() => setCancelacionMasivaTarget(null)}
+          idAmenity={cancelacionMasivaTarget.idAmenity}
+          nombreAmenity={cancelacionMasivaTarget.nombre}
+        />
+      )}
     </div>
   );
 }

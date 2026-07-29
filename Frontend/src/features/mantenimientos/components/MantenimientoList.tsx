@@ -7,9 +7,12 @@ import { DataTable, Column } from '@/components/ui/DataTable';
 import { CreateButton } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
 import type { Mantenimiento } from '../types';
-import { Search, Wrench } from 'lucide-react';
+import { Search, Wrench, CalendarOff } from 'lucide-react';
+import { DiaExcepcionalModal } from './DiaExcepcionalModal';
 
 export default function MantenimientoList() {
+  const [isDiaExcepcionalOpen, setIsDiaExcepcionalOpen] = React.useState<boolean>(false);
+
   const {
     items,
     totalCount,
@@ -108,7 +111,15 @@ export default function MantenimientoList() {
           </p>
         </div>
         
-        <CreateButton label="Nuevo Mantenimiento" onClick={handleOpenCreate} />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsDiaExcepcionalOpen(true)}
+            className="px-4 py-2 rounded-2xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-600 dark:text-purple-400 border border-purple-500/30 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <CalendarOff className="w-4 h-4" /> Días Excepcionales & Feriados (CU-10)
+          </button>
+          <CreateButton label="Nuevo Mantenimiento" onClick={handleOpenCreate} />
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -202,6 +213,12 @@ export default function MantenimientoList() {
           </div>
         </div>
       </Modal>
+
+      <DiaExcepcionalModal
+        isOpen={isDiaExcepcionalOpen}
+        onClose={() => setIsDiaExcepcionalOpen(false)}
+        amenities={amenities}
+      />
     </div>
   );
 }

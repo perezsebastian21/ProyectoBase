@@ -557,7 +557,7 @@ export default function ConsorcioExecutiveDashboard({
             badgeStatus="success"
             description="Administrá los perfiles de inquilinos, propietarios y pases de invitados asignados a las unidades."
             icon={<Users className="w-5 h-5 text-blue-400" />}
-            onClick={() => router.push(ROUTES.INQUILILNOS)}
+            onClick={() => router.push(ROUTES.INQUILINOS)}
           />
 
           <DashboardActionCard

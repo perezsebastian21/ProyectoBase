@@ -23,6 +23,9 @@ namespace ProyectoBase.Models
         public DbSet<ListaEspera> ListasEspera { get; set; }
         public DbSet<MantenimientoProgramado> MantenimientosProgramados { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<UsuarioUnidad> UsuariosUnidades { get; set; }
+        public DbSet<PoliticaCancelacionTramo> PoliticasCancelacionTramos { get; set; }
+        public DbSet<NotificacionIntento> NotificacionesIntentos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +41,7 @@ namespace ProyectoBase.Models
                 entity.Property(x => x.Email).IsRequired().HasMaxLength(100);
                 entity.HasIndex(x => x.Email).IsUnique();
                 entity.Property(x => x.Telefono).HasMaxLength(20);
+                entity.Property(x => x.TieneGuardiaDedicado).HasDefaultValue(false);
             });
 
             modelBuilder.Entity<Complejo>(entity =>
@@ -128,6 +132,8 @@ namespace ProyectoBase.Models
                 entity.Property(x => x.CantidadInvitados).HasDefaultValue(0);
                 entity.Property(x => x.Estado).IsRequired().HasMaxLength(25);
                 entity.Property(x => x.FechaSolicitud).IsRequired().HasColumnType("timestamptz");
+                entity.Property(x => x.CheckInRealizado).HasDefaultValue(false);
+                entity.Property(x => x.MontoRetenido).HasColumnType("decimal(10,2)").HasDefaultValue(0.00m);
                 entity.HasOne(x => x.Amenity).WithMany()
                       .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(x => x.UnidadHabitacional).WithMany()
@@ -159,10 +165,13 @@ namespace ProyectoBase.Models
                 entity.Property(x => x.Posicion).IsRequired();
                 entity.Property(x => x.FechaInscripcion).IsRequired().HasColumnType("timestamptz");
                 entity.Property(x => x.Estado).IsRequired().HasMaxLength(15).HasDefaultValue("ESPERANDO");
+                entity.Property(x => x.MotivoExpiracion).HasMaxLength(30);
                 entity.HasOne(x => x.Amenity).WithMany()
                       .HasForeignKey(x => x.IDAmenity).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(x => x.UnidadHabitacional).WithMany()
                       .HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Usuario).WithMany()
+                      .HasForeignKey(x => x.IDUsuario).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<MantenimientoProgramado>(entity =>
@@ -248,6 +257,11 @@ namespace ProyectoBase.Models
                       .IsRequired()
                       .HasMaxLength(250);
 
+                entity.Property(e => e.Rol)
+                      .IsRequired()
+                      .HasMaxLength(30)
+                      .HasDefaultValue("INQUILINO");
+
                 entity.Property(e => e.Activo)
                       .IsRequired()
                       .HasDefaultValue(true);
@@ -259,6 +273,32 @@ namespace ProyectoBase.Models
                 entity.HasIndex(e => e.Email)
                       .IsUnique();
 
+            });
+
+            modelBuilder.Entity<UsuarioUnidad>(entity =>
+            {
+                entity.ToTable("PB_UsuarioUnidad");
+                entity.HasKey(x => x.IDUsuarioUnidad);
+                entity.Property(x => x.TipoRelacion).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.EsOcupanteActual).HasDefaultValue(true);
+                entity.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.IDUsuario).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany().HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PoliticaCancelacionTramo>(entity =>
+            {
+                entity.ToTable("PB_PoliticaCancelacionTramo");
+                entity.HasKey(x => x.IDTramo);
+                entity.Property(x => x.PorcentajePenalidad).HasColumnType("decimal(5,2)");
+                entity.HasOne(x => x.AmenityConfig).WithMany().HasForeignKey(x => x.IDAmenityConfig).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<NotificacionIntento>(entity =>
+            {
+                entity.ToTable("PB_NotificacionIntento");
+                entity.HasKey(x => x.IDIntento);
+                entity.Property(x => x.Canal).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.EnviadoEn).IsRequired().HasColumnType("timestamptz");
             });
         }
     }

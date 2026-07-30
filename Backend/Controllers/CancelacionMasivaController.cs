@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using ProyectoBase.Exceptions;
+using ProyectoBase.Models;
 using ProyectoBase.Services;
 
 namespace ProyectoBase.Controllers
@@ -18,33 +20,22 @@ namespace ProyectoBase.Controllers
         }
 
         [HttpPost("{id:int}/FueraDeServicio")]
-        public async Task<IActionResult> DeclararFueraDeServicio(int id, [FromBody] CancelacionMasivaRequestDto dto)
+        public async Task<ActionResult<ServiceResponse<CancelacionMasivaResultDto>>> DeclararFueraDeServicio(int id, [FromBody] CancelacionMasivaRequestDto dto)
         {
             if (dto == null)
             {
-                return BadRequest(new { mensaje = "El cuerpo de la solicitud no puede estar vacío." });
+                throw new BadRequestException("El cuerpo de la solicitud no puede estar vacío.");
             }
 
             dto.IDAmenity = id;
 
             if (string.IsNullOrWhiteSpace(dto.MotivoAdmin))
             {
-                return BadRequest(new { mensaje = "Debe proporcionar un motivo administrativo (MotivoAdmin)." });
+                throw new BadRequestException("Debe proporcionar un motivo administrativo (MotivoAdmin).");
             }
 
-            try
-            {
-                var resultado = await _cancelacionService.EjecutarCancelacionMasivaAsync(dto);
-                return Ok(resultado);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { mensaje = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = "Error al ejecutar la cancelación masiva.", detalle = ex.Message });
-            }
+            var resultado = await _cancelacionService.EjecutarCancelacionMasivaAsync(dto);
+            return Ok(new ServiceResponse<CancelacionMasivaResultDto>(resultado));
         }
     }
 }

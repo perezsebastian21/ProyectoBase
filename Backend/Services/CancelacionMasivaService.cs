@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using ProyectoBase.Exceptions;
 using ProyectoBase.Models;
 
 namespace ProyectoBase.Services
@@ -41,7 +42,7 @@ namespace ProyectoBase.Services
             var amenity = await _context.Amenities.FindAsync(dto.IDAmenity);
             if (amenity == null)
             {
-                throw new KeyNotFoundException($"No se encontró el amenity con ID {dto.IDAmenity}.");
+                throw new NotFoundException($"No se encontró el amenity con ID {dto.IDAmenity}.");
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();

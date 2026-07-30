@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ProyectoBase.Exceptions;
 using ProyectoBase.Models;
 using ProyectoBase.Services.GenericService;
 
@@ -19,17 +20,17 @@ namespace ProyectoBase.Controllers
         }
 
         [HttpPost("{id:int}/CheckIn")]
-        public async Task<IActionResult> CheckIn(int id)
+        public async Task<ActionResult<ServiceResponse<Reserva>>> CheckIn(int id)
         {
             var reserva = await _context.Reservas.FindAsync(id);
             if (reserva == null)
             {
-                return NotFound(new { mensaje = $"No se encontró la reserva con ID {id}." });
+                throw new NotFoundException($"No se encontró la reserva con ID {id}.");
             }
 
             if (reserva.Estado != "CONFIRMADA" && reserva.Estado != "Confirmed")
             {
-                return BadRequest(new { mensaje = $"Solo se puede realizar Check-In sobre reservas en estado CONFIRMADA (Estado actual: {reserva.Estado})." });
+                throw new BadRequestException($"Solo se puede realizar Check-In sobre reservas en estado CONFIRMADA (Estado actual: {reserva.Estado}).");
             }
 
             reserva.CheckInRealizado = true;
@@ -37,13 +38,7 @@ namespace ProyectoBase.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new
-            {
-                mensaje = "Check-In registrado exitosamente.",
-                idReserva = reserva.IDReserva,
-                checkInRealizado = reserva.CheckInRealizado,
-                checkInFecha = reserva.CheckInFecha
-            });
+            return Ok(new ServiceResponse<Reserva>(reserva));
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using ProyectoBase.Exceptions;
 using ProyectoBase.Models;
 
 namespace ProyectoBase.Services
@@ -45,7 +46,7 @@ namespace ProyectoBase.Services
 
             if (amenity == null)
             {
-                throw new KeyNotFoundException($"No se encontró el amenity con ID {idAmenity}.");
+                throw new NotFoundException($"No se encontró el amenity con ID {idAmenity}.");
             }
 
             var response = new DisponibilidadResponseDto

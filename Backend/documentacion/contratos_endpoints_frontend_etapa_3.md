@@ -2,6 +2,33 @@
 
 Base URL: `https://<tu-backend-domain>/` (o local `http://localhost:5000/`)
 
+> [!IMPORTANT]
+> **Formato Único de Respuesta HTTP (`ServiceResponse<T>`)**:
+> Todos los endpoints de la API (tanto exitosos como de error) devuelven una estructura estandarizada. 
+> El frontend debe acceder a la información a través de la propiedad **`data`** cuando `success === true`.
+
+---
+
+## 📐 Estructura Estándar de Respuesta
+
+### Respuesta Exitosa (`200 OK`)
+```json
+{
+  "data": { /* Payload del DTO solicitado */ },
+  "success": true,
+  "errorMessage": null
+}
+```
+
+### Respuesta con Error (`400 Bad Request` / `404 Not Found`)
+```json
+{
+  "data": null,
+  "success": false,
+  "errorMessage": "Descripción detallada del error de negocio o validación."
+}
+```
+
 ---
 
 ## 🆕 1. Nuevos Endpoints Incorporados
@@ -17,40 +44,44 @@ Retorna la grilla de slots de tiempo con su estado (`LIBRE`, `OCUPADO`, `MANTENI
 * **Respuesta Exitosa (`200 OK`)**:
 ```json
 {
-  "idAmenity": 1,
-  "nombreAmenity": "Piscina Principal",
-  "fecha": "2026-07-30",
-  "amenityHabilitado": true,
-  "motivoInhabilitado": null,
-  "slots": [
-    {
-      "horaInicio": "09:00:00",
-      "horaFin": "10:00:00",
-      "estadoSlot": "LIBRE",
-      "capacidadMaxima": 15,
-      "reservasConfirmadas": 2,
-      "bloqueadoPorIncidencia": false,
-      "bloqueadoPorMantenimiento": false
-    },
-    {
-      "horaInicio": "10:15:00",
-      "horaFin": "11:15:00",
-      "estadoSlot": "OCUPADO",
-      "capacidadMaxima": 15,
-      "reservasConfirmadas": 15,
-      "bloqueadoPorIncidencia": false,
-      "bloqueadoPorMantenimiento": false
-    },
-    {
-      "horaInicio": "11:30:00",
-      "horaFin": "12:30:00",
-      "estadoSlot": "MANTENIMIENTO",
-      "capacidadMaxima": 15,
-      "reservasConfirmadas": 0,
-      "bloqueadoPorIncidencia": false,
-      "bloqueadoPorMantenimiento": true
-    }
-  ]
+  "data": {
+    "idAmenity": 1,
+    "nombreAmenity": "Piscina Principal",
+    "fecha": "2026-07-30",
+    "amenityHabilitado": true,
+    "motivoInhabilitado": null,
+    "slots": [
+      {
+        "horaInicio": "09:00:00",
+        "horaFin": "10:00:00",
+        "estadoSlot": "LIBRE",
+        "capacidadMaxima": 15,
+        "reservasConfirmadas": 2,
+        "bloqueadoPorIncidencia": false,
+        "bloqueadoPorMantenimiento": false
+      },
+      {
+        "horaInicio": "10:15:00",
+        "horaFin": "11:15:00",
+        "estadoSlot": "OCUPADO",
+        "capacidadMaxima": 15,
+        "reservasConfirmadas": 15,
+        "bloqueadoPorIncidencia": false,
+        "bloqueadoPorMantenimiento": false
+      },
+      {
+        "horaInicio": "11:30:00",
+        "horaFin": "12:30:00",
+        "estadoSlot": "MANTENIMIENTO",
+        "capacidadMaxima": 15,
+        "reservasConfirmadas": 0,
+        "bloqueadoPorIncidencia": false,
+        "bloqueadoPorMantenimiento": true
+      }
+    ]
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```
 
@@ -74,13 +105,17 @@ Declara un amenity fuera de servicio, cancelando automáticamente las reservas a
 * **Respuesta Exitosa (`200 OK`)**:
 ```json
 {
-  "idAmenity": 1,
-  "nombreAmenity": "Piscina Principal",
-  "nuevoEstadoAmenity": "FUERA_DE_SERVICIO",
-  "reservasCanceladasCount": 4,
-  "listasEsperaInhabilitadasCount": 2,
-  "motivoAdmin": "Rotura imprevista de la bomba de filtrado",
-  "fechaEjecucion": "2026-07-30T13:30:00Z"
+  "data": {
+    "idAmenity": 1,
+    "nombreAmenity": "Piscina Principal",
+    "nuevoEstadoAmenity": "FUERA_DE_SERVICIO",
+    "reservasCanceladasCount": 4,
+    "listasEsperaInhabilitadasCount": 2,
+    "motivoAdmin": "Rotura imprevista de la bomba de filtrado",
+    "fechaEjecucion": "2026-07-30T13:30:00Z"
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```
 
@@ -95,13 +130,32 @@ Permite al guardia o administrador registrar el ingreso físico a la reserva par
 * **Respuesta Exitosa (`200 OK`)**:
 ```json
 {
-  "mensaje": "Check-In registrado exitosamente.",
-  "idReserva": 12,
-  "checkInRealizado": true,
-  "checkInFecha": "2026-07-30T13:35:00.123Z"
+  "data": {
+    "idReserva": 12,
+    "idAmenity": 1,
+    "idUnidadHabitacional": 3,
+    "fechaUso": "2026-07-30",
+    "horaInicio": "14:00:00",
+    "horaFin": "15:00:00",
+    "cantidadInvitados": 2,
+    "estado": "CONFIRMADA",
+    "fechaSolicitud": "2026-07-29T10:00:00Z",
+    "checkInRealizado": true,
+    "checkInFecha": "2026-07-30T13:35:00Z",
+    "montoRetenido": 0.00
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```
-* **Respuesta Error (`400 Bad Request`)**: Si la reserva no está en estado `CONFIRMADA`.
+* **Respuesta Error (`400 Bad Request`)**:
+```json
+{
+  "data": null,
+  "success": false,
+  "errorMessage": "Solo se puede realizar Check-In sobre reservas en estado CONFIRMADA (Estado actual: CANCELADA)."
+}
+```
 
 ---
 
@@ -113,10 +167,22 @@ Permite al residente cancelar su lugar en la lista de espera antes de ser notifi
 * **Respuesta Exitosa (`200 OK`)**:
 ```json
 {
-  "mensaje": "Retiro voluntario de la lista de espera registrado exitosamente.",
-  "idListaEspera": 5,
-  "estado": "EXPIRADO",
-  "motivoExpiracion": "CANCELO"
+  "data": {
+    "idListaEspera": 5,
+    "idAmenity": 1,
+    "idUnidadHabitacional": 3,
+    "idUsuario": 10,
+    "fechaUso": "2026-07-30",
+    "horaInicio": "16:00:00",
+    "posicion": 1,
+    "fechaInscripcion": "2026-07-29T11:00:00Z",
+    "estado": "EXPIRADO",
+    "fechaNotificacion": null,
+    "fechaResolucion": "2026-07-30T13:36:00Z",
+    "motivoExpiracion": "CANCELO"
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```
 
@@ -125,44 +191,52 @@ Permite al residente cancelar su lugar en la lista de espera antes de ser notifi
 ## ✏️ 2. Enmiendas en Modelos y Endpoints Existentes
 
 ### 2.1 Entidad `Reserva` (`GET /Reserva`, `POST /Reserva`, `GET /Reserva/{id}`)
-Se agregan los siguientes campos en la respuesta JSON:
+Se agregan los campos `checkInRealizado`, `checkInFecha` y `montoRetenido` en la propiedad `data`:
 
 ```json
 {
-  "idReserva": 12,
-  "idAmenity": 1,
-  "idUnidadHabitacional": 3,
-  "fechaUso": "2026-07-30",
-  "horaInicio": "14:00:00",
-  "horaFin": "15:00:00",
-  "cantidadInvitados": 2,
-  "estado": "CONFIRMADA", // "PENDIENTE_PAGO" | "PENDIENTE_APROBACION" | "CONFIRMADA" | "CANCELADA" | "CANCELADA_ADMINISTRATIVA"
-  "fechaSolicitud": "2026-07-29T10:00:00Z",
-  "checkInRealizado": false,  // 🆕 NUEVO (boolean)
-  "checkInFecha": null,       // 🆕 NUEVO (datetime ISO UTC)
-  "montoRetenido": 0.00       // 🆕 NUEVO (decimal retenido por penalización de cancelación)
+  "data": {
+    "idReserva": 12,
+    "idAmenity": 1,
+    "idUnidadHabitacional": 3,
+    "fechaUso": "2026-07-30",
+    "horaInicio": "14:00:00",
+    "horaFin": "15:00:00",
+    "cantidadInvitados": 2,
+    "estado": "CONFIRMADA", // "PENDIENTE_PAGO" | "PENDIENTE_APROBACION" | "CONFIRMADA" | "CANCELADA" | "CANCELADA_ADMINISTRATIVA"
+    "fechaSolicitud": "2026-07-29T10:00:00Z",
+    "checkInRealizado": false,  // 🆕 NUEVO (boolean)
+    "checkInFecha": null,       // 🆕 NUEVO (datetime ISO UTC)
+    "montoRetenido": 0.00       // 🆕 NUEVO (decimal retenido por penalización de cancelación)
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```
 
 ---
 
 ### 2.2 Entidad `ListaEspera` (`GET /ListaEspera`, `POST /ListaEspera`)
-Se agregan los siguientes campos en la respuesta JSON:
+Se agregan los campos `idUsuario`, `fechaNotificacion`, `fechaResolucion` y `motivoExpiracion`:
 
 ```json
 {
-  "idListaEspera": 5,
-  "idAmenity": 1,
-  "idUnidadHabitacional": 3,
-  "idUsuario": 10,             // 🆕 NUEVO (FK int del usuario que se anotó)
-  "fechaUso": "2026-07-30",
-  "horaInicio": "16:00:00",
-  "posicion": 1,
-  "fechaInscripcion": "2026-07-29T11:00:00Z",
-  "estado": "ESPERANDO",       // "ESPERANDO" | "NOTIFICADO" | "EXPIRADO" | "CONFIRMADO"
-  "fechaNotificacion": null,   // 🆕 NUEVO (datetime ISO UTC cuando pasa a NOTIFICADO)
-  "fechaResolucion": null,     // 🆕 NUEVO (datetime ISO UTC cuando pasa a CONFIRMADO o EXPIRADO)
-  "motivoExpiracion": null     // 🆕 NUEVO: "NO_RESPONDIO" | "CANCELO" | "AMENITY_DESHABILITADO"
+  "data": {
+    "idListaEspera": 5,
+    "idAmenity": 1,
+    "idUnidadHabitacional": 3,
+    "idUsuario": 10,             // 🆕 NUEVO (FK int del usuario que se anotó)
+    "fechaUso": "2026-07-30",
+    "horaInicio": "16:00:00",
+    "posicion": 1,
+    "fechaInscripcion": "2026-07-29T11:00:00Z",
+    "estado": "ESPERANDO",       // "ESPERANDO" | "NOTIFICADO" | "EXPIRADO" | "CONFIRMADO"
+    "fechaNotificacion": null,   // 🆕 NUEVO (datetime ISO UTC cuando pasa a NOTIFICADO)
+    "fechaResolucion": null,     // 🆕 NUEVO (datetime ISO UTC cuando pasa a CONFIRMADO o EXPIRADO)
+    "motivoExpiracion": null     // 🆕 NUEVO: "NO_RESPONDIO" | "CANCELO" | "AMENITY_DESHABILITADO"
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```
 
@@ -184,14 +258,18 @@ El campo `rol` en el objeto `Usuario` o en los claims JWT retornados en Login ac
 ---
 
 ### 2.4 Entidad `Consorcio`
-Se agrega la bandera de tipo de administración:
+Se agrega la bandera de tipo de administración en la propiedad `data`:
 ```json
 {
-  "idConsorcio": 1,
-  "nombre": "Consorcio Las Heras",
-  "cuit": "30123456789",
-  "email": "contacto@lasheras.com",
-  "telefono": "1144332211",
-  "tieneGuardiaDedicado": false  // 🆕 NUEVO (boolean: si es false, habilita vista de ADMIN_LIVIANO para sustituir funciones de guardia)
+  "data": {
+    "idConsorcio": 1,
+    "nombre": "Consorcio Las Heras",
+    "cuit": "30123456789",
+    "email": "contacto@lasheras.com",
+    "telefono": "1144332211",
+    "tieneGuardiaDedicado": false  // 🆕 NUEVO (boolean)
+  },
+  "success": true,
+  "errorMessage": null
 }
 ```

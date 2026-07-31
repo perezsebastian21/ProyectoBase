@@ -8,25 +8,41 @@ using ProyectoBase.Models;
 
 namespace ProyectoBase.Services
 {
+    public class ConfigAplicadaDto
+    {
+        public TimeOnly HorarioInicio { get; set; }
+        public TimeOnly HorarioFin { get; set; }
+        public int DuracionBloqueMinutos { get; set; }
+        public int TiempoLimpiezaMinutos { get; set; }
+        public decimal Tarifa { get; set; }
+        public int LimiteReservasMesUnidad { get; set; }
+        public bool RequiereAprobacion { get; set; }
+    }
+
     public class SlotDisponibilidadDto
     {
         public TimeOnly HoraInicio { get; set; }
         public TimeOnly HoraFin { get; set; }
-        public string EstadoSlot { get; set; } = "LIBRE"; // "LIBRE" | "OCUPADO" | "MANTENIMIENTO" | "SUSPENDIDO"
-        public int CapacidadMaxima { get; set; }
-        public int ReservasConfirmadas { get; set; }
-        public bool BloqueadoPorIncidencia { get; set; }
-        public bool BloqueadoPorMantenimiento { get; set; }
+        public bool Disponible { get; set; }
+        public string MotivoNoDisponible { get; set; }
+    }
+
+    public class DisponibilidadDiaDto
+    {
+        public DateOnly Fecha { get; set; }
+        public List<SlotDisponibilidadDto> Slots { get; set; } = new();
     }
 
     public class DisponibilidadResponseDto
     {
         public int IDAmenity { get; set; }
         public string NombreAmenity { get; set; } = string.Empty;
-        public DateOnly Fecha { get; set; }
-        public bool AmenityHabilitado { get; set; } = true;
-        public string? MotivoInhabilitado { get; set; }
-        public List<SlotDisponibilidadDto> Slots { get; set; } = new();
+        public string EstadoAmenity { get; set; } = "DISPONIBLE";
+        public ConfigAplicadaDto Configuracion { get; set; }
+        public DateOnly VentanaConsultableDesde { get; set; }
+        public DateOnly VentanaConsultableHasta { get; set; }
+        public int? CupoRestanteUnidadMes { get; set; }
+        public List<DisponibilidadDiaDto> Dias { get; set; } = new();
     }
 
     public class DisponibilidadService
@@ -38,7 +54,11 @@ namespace ProyectoBase.Services
             _context = context;
         }
 
-        public async Task<DisponibilidadResponseDto> ConsultarDisponibilidadAsync(int idAmenity, DateOnly fecha)
+        public async Task<DisponibilidadResponseDto> ConsultarDisponibilidadAsync(
+            int idAmenity,
+            DateOnly fechaDesde,
+            DateOnly? fechaHasta = null,
+            int? idUnidadHabitacional = null)
         {
             var amenity = await _context.Amenities
                 .Include(a => a.Config)
@@ -49,90 +69,136 @@ namespace ProyectoBase.Services
                 throw new NotFoundException($"No se encontró el amenity con ID {idAmenity}.");
             }
 
+            DateOnly inicio = fechaDesde;
+            DateOnly fin = fechaHasta ?? fechaDesde;
+            if (fin < inicio) fin = inicio;
+
             var response = new DisponibilidadResponseDto
             {
                 IDAmenity = amenity.IDAmenity,
                 NombreAmenity = amenity.Nombre,
-                Fecha = fecha
+                EstadoAmenity = amenity.Estado ?? "DISPONIBLE",
+                VentanaConsultableDesde = inicio,
+                VentanaConsultableHasta = fin
             };
 
-            // BR-DISP-002: Verificar si el amenity está totalmente inhabilitado por estado
-            if (amenity.Estado == "FUERA_DE_SERVICIO" || amenity.Estado == "MANTENIMIENTO")
-            {
-                response.AmenityHabilitado = false;
-                response.MotivoInhabilitado = $"Amenity fuera de servicio (Estado: {amenity.Estado})";
-                return response;
-            }
-
             var config = amenity.Config;
-            if (config == null)
+            if (config != null)
             {
-                response.AmenityHabilitado = false;
-                response.MotivoInhabilitado = "El amenity no posee configuración de horarios registrada.";
-                return response;
+                response.Configuracion = new ConfigAplicadaDto
+                {
+                    HorarioInicio = config.HorarioInicio,
+                    HorarioFin = config.HorarioFin,
+                    DuracionBloqueMinutos = config.DuracionBloqueMinutos,
+                    TiempoLimpiezaMinutos = config.TiempoLimpiezaMinutos,
+                    Tarifa = config.Tarifa,
+                    LimiteReservasMesUnidad = config.LimiteReservasMesUnidad,
+                    RequiereAprobacion = config.RequiereAprobacion
+                };
             }
 
-            // Consultar reservas activas en esa fecha
+            // Calcular cupo restante para la unidad en el mes si corresponde
+            if (idUnidadHabitacional.HasValue && config != null && config.LimiteReservasMesUnidad > 0)
+            {
+                var primerDiaMes = new DateOnly(inicio.Year, inicio.Month, 1);
+                var ultimoDiaMes = primerDiaMes.AddMonths(1).AddDays(-1);
+
+                int reservasDelMes = await _context.Reservas
+                    .CountAsync(r => r.IDAmenity == idAmenity &&
+                                     r.IDUnidadHabitacional == idUnidadHabitacional.Value &&
+                                     r.FechaUso >= primerDiaMes &&
+                                     r.FechaUso <= ultimoDiaMes &&
+                                     r.Estado != "CANCELADA" &&
+                                     r.Estado != "RECHAZADA");
+
+                int cupoRestante = config.LimiteReservasMesUnidad - reservasDelMes;
+                response.CupoRestanteUnidadMes = cupoRestante > 0 ? cupoRestante : 0;
+            }
+
+            // Consultar datos de reservas, mantenimientos e incidencias en el rango
             var reservas = await _context.Reservas
-                .Where(r => r.IDAmenity == idAmenity && r.FechaUso == fecha && r.Estado != "CANCELADA" && r.Estado != "RECHAZADA")
+                .Where(r => r.IDAmenity == idAmenity && r.FechaUso >= inicio && r.FechaUso <= fin && r.Estado != "CANCELADA" && r.Estado != "RECHAZADA")
                 .ToListAsync();
 
-            // Consultar mantenimientos programados activos en esa fecha
             var mantenimientos = await _context.MantenimientosProgramados
-                .Where(m => m.IDAmenity == idAmenity && fecha >= m.FechaInicio && fecha <= m.FechaFin)
+                .Where(m => m.IDAmenity == idAmenity && m.FechaInicio <= fin && m.FechaFin >= inicio)
                 .ToListAsync();
 
-            // Consultar incidencias graves activas
             var incidencias = await _context.Incidencias
                 .Where(i => i.IDAmenity == idAmenity && (i.Estado == "REPORTADA" || i.Estado == "EN_REPARACION"))
                 .ToListAsync();
 
-            // Generar slots basados en la configuración
-            var horaActual = config.HorarioInicio;
-            var horaFinGeneral = config.HorarioFin;
-            int duracion = config.DuracionBloqueMinutos > 0 ? config.DuracionBloqueMinutos : 60;
-            int limpieza = config.TiempoLimpiezaMinutos;
-
-            while (horaActual.AddMinutes(duracion) <= horaFinGeneral && horaActual < horaFinGeneral)
+            for (var diaActual = inicio; diaActual <= fin; diaActual = diaActual.AddDays(1))
             {
-                var slotFin = horaActual.AddMinutes(duracion);
+                var diaDto = new DisponibilidadDiaDto { Fecha = diaActual };
 
-                var slot = new SlotDisponibilidadDto
+                if (amenity.Estado == "FUERA_DE_SERVICIO" || amenity.Estado == "MANTENIMIENTO")
                 {
-                    HoraInicio = horaActual,
-                    HoraFin = slotFin,
-                    CapacidadMaxima = amenity.Capacidad
-                };
-
-                // Evaluar mantenimientos en este bloque
-                bool enMantenimiento = mantenimientos.Any(m => m.HoraInicio < slotFin && m.HoraFin > horaActual);
-                if (enMantenimiento)
-                {
-                    slot.BloqueadoPorMantenimiento = true;
-                    slot.EstadoSlot = "MANTENIMIENTO";
+                    // Si el amenity está inhabilitado globalmente
+                    var slotInhabilitado = new SlotDisponibilidadDto
+                    {
+                        HoraInicio = config?.HorarioInicio ?? new TimeOnly(8, 0),
+                        HoraFin = config?.HorarioFin ?? new TimeOnly(22, 0),
+                        Disponible = false,
+                        MotivoNoDisponible = amenity.Estado
+                    };
+                    diaDto.Slots.Add(slotInhabilitado);
+                    response.Dias.Add(diaDto);
+                    continue;
                 }
 
-                // Evaluar incidencias en este bloque
-                bool enIncidencia = incidencias.Any();
-                if (enIncidencia && !slot.BloqueadoPorMantenimiento)
+                if (config == null)
                 {
-                    slot.BloqueadoPorIncidencia = true;
-                    slot.EstadoSlot = "SUSPENDIDO";
+                    response.Dias.Add(diaDto);
+                    continue;
                 }
 
-                // Evaluar reservas ocupadas
-                int conteoReservas = reservas.Count(r => r.HoraInicio < slotFin && r.HoraFin > horaActual);
-                slot.ReservasConfirmadas = conteoReservas;
+                var horaActual = config.HorarioInicio;
+                var horaFinGeneral = config.HorarioFin;
+                int duracion = config.DuracionBloqueMinutos > 0 ? config.DuracionBloqueMinutos : 60;
+                int limpieza = config.TiempoLimpiezaMinutos;
 
-                if (slot.EstadoSlot == "LIBRE" && conteoReservas >= amenity.Capacidad)
+                while (horaActual.AddMinutes(duracion) <= horaFinGeneral && horaActual < horaFinGeneral)
                 {
-                    slot.EstadoSlot = "OCUPADO";
+                    var slotFin = horaActual.AddMinutes(duracion);
+
+                    var slot = new SlotDisponibilidadDto
+                    {
+                        HoraInicio = horaActual,
+                        HoraFin = slotFin,
+                        Disponible = true,
+                        MotivoNoDisponible = null
+                    };
+
+                    // Evaluar mantenimientos en este bloque
+                    bool enMantenimiento = mantenimientos.Any(m => m.FechaInicio <= diaActual && m.FechaFin >= diaActual && m.HoraInicio < slotFin && m.HoraFin > horaActual);
+                    if (enMantenimiento)
+                    {
+                        slot.Disponible = false;
+                        slot.MotivoNoDisponible = "MANTENIMIENTO";
+                    }
+
+                    // Evaluar incidencias
+                    bool enIncidencia = incidencias.Any();
+                    if (enIncidencia && slot.Disponible)
+                    {
+                        slot.Disponible = false;
+                        slot.MotivoNoDisponible = "FUERA_DE_SERVICIO";
+                    }
+
+                    // Evaluar reservas ocupadas
+                    int conteoReservas = reservas.Count(r => r.FechaUso == diaActual && r.HoraInicio < slotFin && r.HoraFin > horaActual);
+                    if (slot.Disponible && conteoReservas >= amenity.Capacidad)
+                    {
+                        slot.Disponible = false;
+                        slot.MotivoNoDisponible = "OCUPADO";
+                    }
+
+                    diaDto.Slots.Add(slot);
+                    horaActual = slotFin.AddMinutes(limpieza);
                 }
 
-                response.Slots.Add(slot);
-
-                // Avanzar al siguiente bloque (duración + tiempo de limpieza)
-                horaActual = slotFin.AddMinutes(limpieza);
+                response.Dias.Add(diaDto);
             }
 
             return response;

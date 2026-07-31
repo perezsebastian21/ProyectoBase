@@ -39,44 +39,52 @@ Retorna la grilla de slots de tiempo con su estado (`LIBRE`, `OCUPADO`, `MANTENI
 * **HTTP Method**: `GET`
 * **Ruta**: `/Amenity/{id}/Disponibilidad`
 * **Query Params**:
-  * `fecha` (opcional, string formato `YYYY-MM-DD` — si se omite toma la fecha de hoy).
-* **Ejemplo Request**: `GET /Amenity/1/Disponibilidad?fecha=2026-07-30`
+  * `fechaDesde` / `fecha` (opcional, string formato `YYYY-MM-DD` — si se omite toma la fecha de hoy).
+  * `fechaHasta` (opcional, string formato `YYYY-MM-DD`).
+  * `idUnidadHabitacional` (opcional, entero — permite calcular `cupoRestanteUnidadMes`).
+* **Ejemplo Request**: `GET /Amenity/1/Disponibilidad?fechaDesde=2026-07-31&fechaHasta=2026-07-31&idUnidadHabitacional=1`
 * **Respuesta Exitosa (`200 OK`)**:
 ```json
 {
   "data": {
     "idAmenity": 1,
     "nombreAmenity": "Piscina Principal",
-    "fecha": "2026-07-30",
-    "amenityHabilitado": true,
-    "motivoInhabilitado": null,
-    "slots": [
+    "estadoAmenity": "DISPONIBLE",
+    "configuracion": {
+      "horarioInicio": "09:00:00",
+      "horarioFin": "22:00:00",
+      "duracionBloqueMinutos": 60,
+      "tiempoLimpiezaMinutos": 15,
+      "tarifa": 0.00,
+      "limiteReservasMesUnidad": 5,
+      "requiereAprobacion": false
+    },
+    "ventanaConsultableDesde": "2026-07-31",
+    "ventanaConsultableHasta": "2026-07-31",
+    "cupoRestanteUnidadMes": 4,
+    "dias": [
       {
-        "horaInicio": "09:00:00",
-        "horaFin": "10:00:00",
-        "estadoSlot": "LIBRE",
-        "capacidadMaxima": 15,
-        "reservasConfirmadas": 2,
-        "bloqueadoPorIncidencia": false,
-        "bloqueadoPorMantenimiento": false
-      },
-      {
-        "horaInicio": "10:15:00",
-        "horaFin": "11:15:00",
-        "estadoSlot": "OCUPADO",
-        "capacidadMaxima": 15,
-        "reservasConfirmadas": 15,
-        "bloqueadoPorIncidencia": false,
-        "bloqueadoPorMantenimiento": false
-      },
-      {
-        "horaInicio": "11:30:00",
-        "horaFin": "12:30:00",
-        "estadoSlot": "MANTENIMIENTO",
-        "capacidadMaxima": 15,
-        "reservasConfirmadas": 0,
-        "bloqueadoPorIncidencia": false,
-        "bloqueadoPorMantenimiento": true
+        "fecha": "2026-07-31",
+        "slots": [
+          {
+            "horaInicio": "09:00:00",
+            "horaFin": "10:00:00",
+            "disponible": true,
+            "motivoNoDisponible": null
+          },
+          {
+            "horaInicio": "10:15:00",
+            "horaFin": "11:15:00",
+            "disponible": false,
+            "motivoNoDisponible": "OCUPADO"
+          },
+          {
+            "horaInicio": "11:30:00",
+            "horaFin": "12:30:00",
+            "disponible": false,
+            "motivoNoDisponible": "MANTENIMIENTO"
+          }
+        ]
       }
     ]
   },

@@ -22,14 +22,20 @@ namespace ProyectoBase.Controllers
         public async Task<ActionResult<ServiceResponse<DisponibilidadResponseDto>>> GetDisponibilidad(
             int id,
             [FromQuery] string fecha = null,
-            [FromQuery] string fechaDesde = null)
+            [FromQuery] string fechaDesde = null,
+            [FromQuery] string fechaHasta = null,
+            [FromQuery] int? idUnidadHabitacional = null)
         {
-            string fechaVal = !string.IsNullOrWhiteSpace(fecha) ? fecha : fechaDesde;
-            DateOnly fechaConsulta = string.IsNullOrEmpty(fechaVal)
+            string fechaValInicio = !string.IsNullOrWhiteSpace(fechaDesde) ? fechaDesde : fecha;
+            DateOnly inicio = string.IsNullOrEmpty(fechaValInicio)
                 ? DateOnly.FromDateTime(DateTime.Today)
-                : DateOnly.Parse(fechaVal);
+                : DateOnly.Parse(fechaValInicio);
 
-            var resultado = await _disponibilidadService.ConsultarDisponibilidadAsync(id, fechaConsulta);
+            DateOnly? fin = !string.IsNullOrWhiteSpace(fechaHasta)
+                ? DateOnly.Parse(fechaHasta)
+                : null;
+
+            var resultado = await _disponibilidadService.ConsultarDisponibilidadAsync(id, inicio, fin, idUnidadHabitacional);
             return Ok(new ServiceResponse<DisponibilidadResponseDto>(resultado));
         }
     }

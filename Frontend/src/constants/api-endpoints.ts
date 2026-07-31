@@ -185,4 +185,41 @@ export const API_ENDPOINTS = {
     UPDATE: '/MantenimientoProgramado',
     DELETE: (id: number) => `/MantenimientoProgramado/${id}` as const,
   },
+
+  // Usuario - Unidad (Relación N:M Propietario/Inquilino)
+  USUARIO_UNIDAD: {
+    GET_ALL: '/UsuarioUnidad/getall',
+    GET_BY_ID: (id: number) => `/UsuarioUnidad/GetById?id=${id}` as const,
+    FIND_QP: '/UsuarioUnidad/FindQP',
+    CREATE: '/UsuarioUnidad',
+    DELETE: (id: number) => `/UsuarioUnidad/${id}` as const,
+  },
+
+  // Políticas de Cancelación (Tramos de Penalidad)
+  POLITICA_CANCELACION: {
+    GET_ALL: '/PoliticaCancelacionTramo/getall',
+    GET_BY_ID: (id: number) => `/PoliticaCancelacionTramo/GetById?id=${id}` as const,
+    FIND_QP: '/PoliticaCancelacionTramo/FindQP',
+    CREATE: '/PoliticaCancelacionTramo',
+    UPDATE: '/PoliticaCancelacionTramo',
+    DELETE: (id: number) => `/PoliticaCancelacionTramo/${id}` as const,
+  },
+
+  // Notificación Intentos
+  NOTIFICACION_INTENTO: {
+    GET_ALL: '/NotificacionIntento/getall',
+    GET_BY_ID: (id: number) => `/NotificacionIntento/GetById?id=${id}` as const,
+    CREATE: '/NotificacionIntento',
+  },
+
+  // Acciones Especiales de Reservas
+  RESERVA_ACCIONES: {
+    CHECK_IN: (id: number) => `/Reserva/${id}/CheckIn` as const,
+  },
+
+  // Acciones Especiales de Amenities
+  AMENITY_ACCIONES: {
+    DISPONIBILIDAD: (id: number, fecha: string) => `/Amenity/${id}/Disponibilidad?fecha=${fecha}` as const,
+    FUERA_DE_SERVICIO: (id: number) => `/Amenity/${id}/FueraDeServicio` as const,
+  },
 } as const;

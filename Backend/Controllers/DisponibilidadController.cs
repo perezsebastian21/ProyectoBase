@@ -8,7 +8,7 @@ using ProyectoBase.Services;
 namespace ProyectoBase.Controllers
 {
     [ApiController]
-    [Route("api/Amenity")]
+    [Route("Amenity")]
     public class DisponibilidadController : ControllerBase
     {
         private readonly DisponibilidadService _disponibilidadService;
@@ -19,11 +19,15 @@ namespace ProyectoBase.Controllers
         }
 
         [HttpGet("{id:int}/Disponibilidad")]
-        public async Task<ActionResult<ServiceResponse<DisponibilidadResponseDto>>> GetDisponibilidad(int id, [FromQuery] string fecha)
+        public async Task<ActionResult<ServiceResponse<DisponibilidadResponseDto>>> GetDisponibilidad(
+            int id,
+            [FromQuery] string fecha = null,
+            [FromQuery] string fechaDesde = null)
         {
-            DateOnly fechaConsulta = string.IsNullOrEmpty(fecha)
+            string fechaVal = !string.IsNullOrWhiteSpace(fecha) ? fecha : fechaDesde;
+            DateOnly fechaConsulta = string.IsNullOrEmpty(fechaVal)
                 ? DateOnly.FromDateTime(DateTime.Today)
-                : DateOnly.Parse(fecha);
+                : DateOnly.Parse(fechaVal);
 
             var resultado = await _disponibilidadService.ConsultarDisponibilidadAsync(id, fechaConsulta);
             return Ok(new ServiceResponse<DisponibilidadResponseDto>(resultado));

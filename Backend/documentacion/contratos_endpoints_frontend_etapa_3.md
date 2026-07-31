@@ -37,10 +37,10 @@ Base URL: `https://<tu-backend-domain>/` (o local `http://localhost:5000/`)
 Retorna la grilla de slots de tiempo con su estado (`LIBRE`, `OCUPADO`, `MANTENIMIENTO`, `SUSPENDIDO`) y capacidad ocupada/máxima para una fecha dada.
 
 * **HTTP Method**: `GET`
-* **Ruta**: `/api/Amenity/{id}/Disponibilidad`
+* **Ruta**: `/Amenity/{id}/Disponibilidad`
 * **Query Params**:
   * `fecha` (opcional, string formato `YYYY-MM-DD` — si se omite toma la fecha de hoy).
-* **Ejemplo Request**: `GET /api/Amenity/1/Disponibilidad?fecha=2026-07-30`
+* **Ejemplo Request**: `GET /Amenity/1/Disponibilidad?fecha=2026-07-30`
 * **Respuesta Exitosa (`200 OK`)**:
 ```json
 {
@@ -91,7 +91,7 @@ Retorna la grilla de slots de tiempo con su estado (`LIBRE`, `OCUPADO`, `MANTENI
 Declara un amenity fuera de servicio, cancelando automáticamente las reservas afectadas sin penalización (reembolso 100%) e inhabilitando las listas de espera.
 
 * **HTTP Method**: `POST`
-* **Ruta**: `/api/Amenity/{id}/FueraDeServicio`
+* **Ruta**: `/Amenity/{id}/FueraDeServicio`
 * **Roles Permitidos**: `SUPER_ADMINISTRADOR`, `ADMINISTRADOR_AVANZADO`, `ADMINISTRADOR_LIVIANO`.
 * **Payload Request (`Body JSON`)**:
 ```json

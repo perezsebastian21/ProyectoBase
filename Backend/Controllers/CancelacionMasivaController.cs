@@ -9,7 +9,7 @@ using ProyectoBase.Services;
 namespace ProyectoBase.Controllers
 {
     [ApiController]
-    [Route("api/Amenity")]
+    [Route("Amenity")]
     public class CancelacionMasivaController : ControllerBase
     {
         private readonly CancelacionMasivaService _cancelacionService;

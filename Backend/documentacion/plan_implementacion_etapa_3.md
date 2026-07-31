@@ -48,18 +48,18 @@ Se requiere implementar los cambios especificados en [implementacion_etapa_3.md]
 ### 2. DTOs y Servicios Core (`Backend/Services/` y `Backend/Controllers/`)
 
 #### [NEW] [DisponibilidadService.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Services/DisponibilidadService.cs) & [DisponibilidadController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/DisponibilidadController.cs)
-- Implementación de `CU-12` (`GET /api/Amenity/{id}/Disponibilidad?fecha=YYYY-MM-DD`).
+- Implementación de `CU-12` (`GET /Amenity/{id}/Disponibilidad?fecha=YYYY-MM-DD`).
 - Lógica para calcular franjas horarias libres/ocupadas evaluando `AmenityConfig`, suspensiones por `Incidencia` o `MantenimientoProgramado`, y deudas (`DebeExpensas`).
 
 #### [NEW] [CancelacionMasivaService.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Services/CancelacionMasivaService.cs) & [CancelacionMasivaController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/CancelacionMasivaController.cs)
-- Implementación de `CU-14` (`POST /api/Amenity/{id}/FueraDeServicio`).
+- Implementación de `CU-14` (`POST /Amenity/{id}/FueraDeServicio`).
 - Transacción explícita para cancelar reservas confirmadas en masa, reembolsar sin penalización e inhabilitar listas de espera.
 
 #### [MODIFY] [ReservaController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/ReservaController.cs)
-- Agregar endpoint `POST /api/Reserva/{id}/CheckIn` (para Guardia/Admin).
+- Agregar endpoint `POST /Reserva/{id}/CheckIn` (para Guardia/Admin).
 
 #### [MODIFY] [ListaEsperaController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/ListaEsperaController.cs)
-- Agregar endpoint `DELETE /api/ListaEspera/{id}` (retiro voluntario).
+- Agregar endpoint `DELETE /ListaEspera/{id}` (retiro voluntario).
 
 ---
 

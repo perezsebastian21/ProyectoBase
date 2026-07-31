@@ -31,6 +31,7 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 // 7. Registrar Servicios de Etapa 3
 builder.Services.AddScoped<ProyectoBase.Services.DisponibilidadService>();
 builder.Services.AddScoped<ProyectoBase.Services.CancelacionMasivaService>();
+builder.Services.AddScoped<ProyectoBase.Services.ReservaService>();
 
 // 5. Configurar Controladores con NewtonsoftJson
 builder.Services.AddControllers()

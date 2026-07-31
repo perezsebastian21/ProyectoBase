@@ -129,7 +129,46 @@ Declara un amenity fuera de servicio, cancelando automáticamente las reservas a
 
 ---
 
-### 1.3 Registro de Check-In en Reserva (`CU-01` Contingencia #1)
+### 1.3 Crear Reserva (`CU-01`)
+Permite al residente solicitar una reserva enviando el contrato DTO simplificado (`ReservaRequestDto`). El backend valida automáticamente la disponibilidad, calcula `horaFin` en base a la duración del bloque de `AmenityConfig` y asigna el `estado` inicial.
+
+* **HTTP Method**: `POST`
+* **Ruta**: `/Reserva`
+* **Roles Permitidos**: `INQUILINO`, `PROPIETARIO` (Grupo `RESIDENTE`), `ADMINISTRADOR_LIVIANO`, `ADMINISTRADOR_AVANZADO`, `SUPER_ADMINISTRADOR`.
+* **Payload Request (`Body JSON`)**:
+```json
+{
+  "idAmenity": 1,
+  "idUnidadHabitacional": 1,
+  "fechaUso": "2026-08-01",
+  "horaInicio": "10:00:00",
+  "cantidadInvitados": 0
+}
+```
+* **Respuesta Exitosa (`200 OK`)**:
+```json
+{
+  "data": {
+    "idReserva": 15,
+    "idAmenity": 1,
+    "nombreAmenity": "Piscina Principal",
+    "idUnidadHabitacional": 1,
+    "fechaUso": "2026-08-01",
+    "horaInicio": "10:00:00",
+    "horaFin": "11:00:00",
+    "cantidadInvitados": 0,
+    "estado": "CONFIRMADA",
+    "fechaSolicitud": "2026-07-31T15:38:00Z",
+    "montoRetenido": 0.00
+  },
+  "success": true,
+  "errorMessage": null
+}
+```
+
+---
+
+### 1.4 Registro de Check-In en Reserva (`CU-01` Contingencia #1)
 Permite al guardia o administrador registrar el ingreso físico a la reserva para evitar marcarla como No-Show.
 
 * **HTTP Method**: `POST`

@@ -12,8 +12,13 @@ namespace ProyectoBase.Models
         public int Posicion { get; set; }
         public DateTime FechaInscripcion { get; set; }
         public string Estado { get; set; }
+        public int IDUsuario { get; set; }
+        public DateTime? FechaNotificacion { get; set; }
+        public DateTime? FechaResolucion { get; set; }
+        public string? MotivoExpiracion { get; set; }
         
         public Amenity Amenity { get; set; }
         public UnidadHabitacional UnidadHabitacional { get; set; }
+        public Usuario Usuario { get; set; }
     }
 }

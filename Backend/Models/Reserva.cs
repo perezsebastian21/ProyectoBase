@@ -13,6 +13,9 @@ namespace ProyectoBase.Models
         public int CantidadInvitados { get; set; }
         public string Estado { get; set; }
         public DateTime FechaSolicitud { get; set; }
+        public bool CheckInRealizado { get; set; } = false;
+        public DateTime? CheckInFecha { get; set; }
+        public decimal MontoRetenido { get; set; } = 0.00m;
         
         public Amenity Amenity { get; set; }
         public UnidadHabitacional UnidadHabitacional { get; set; }

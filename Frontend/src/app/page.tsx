@@ -8,6 +8,8 @@ import AmenityCard from '@/components/ui/AmenityCard';
 import IncidentCard from '@/components/ui/IncidentCard';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { consorcioService } from '@/features/consorcios/services/consorcioService';
+import { amenityService } from '@/features/amenities/services/amenityService';
+import type { Amenity } from '@/features/amenities/types';
 import { complejoService } from '@/features/complejos/services/complejoService';
 import { ConsorcioExecutiveDashboard } from '@/features/dashboard';
 import { ROUTES } from '@/constants';
@@ -51,6 +53,8 @@ export default function Home() {
   const [selectedComplejoId, setSelectedComplejoId] = useState<string>('');
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
   const [activeRole, setActiveRole] = useState<UserRole>('SuperAdmin');
+  const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
+  const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
 
   // Context global de perfil activo
   const { consorcioActivo, complejoActivo, setConsorcioActivo, setComplejoActivo } = useConsorcioActivo();
@@ -170,6 +174,25 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cargar amenities para el rol Inquilino
+  useEffect(() => {
+    if (activeRole !== 'INQUILINO') return;
+    async function fetchAmenities() {
+      setIsLoadingAmenities(true);
+      try {
+        const res = await amenityService.getAll();
+        if (res.success && res.data) {
+          setAmenitiesList(res.data);
+        }
+      } catch (error) {
+        console.error('Error fetching amenities:', error);
+      } finally {
+        setIsLoadingAmenities(false);
+      }
+    }
+    fetchAmenities();
+  }, [activeRole]);
+
 
   const handleLogout = () => {
     roleService.clearActiveRole();
@@ -185,33 +208,7 @@ export default function Home() {
     router.push('/select-role');
   };
 
-  // Mock data para Amenities
-  const mockAmenities = [
-    {
-      title: "Piscina Infinity & Solárium",
-      imageUrl: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=600&auto=format&fit=crop",
-      statusLabel: "Disponible",
-      status: "success" as const,
-      capacity: 25,
-      description: "Espectacular piscina climatizada con vista panorámica a la ciudad y área de reposeras de diseño.",
-    },
-    {
-      title: "SUM / Parrilla Residencial Pro",
-      imageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop",
-      statusLabel: "Reservado Hoy",
-      status: "warning" as const,
-      capacity: 15,
-      description: "Salón de usos múltiples equipado con cocina industrial, vajilla premium y asador de última tecnología.",
-    },
-    {
-      title: "Gimnasio & Centro de Bienestar",
-      imageUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop",
-      statusLabel: "En Mantenimiento",
-      status: "error" as const,
-      capacity: 10,
-      description: "Equipamiento de fuerza y cardio de alta gama con instructores disponibles e hidratación libre.",
-    },
-  ];
+
 
   // Render para SuperAdmin (Dashboard completo original)
   const renderSuperAdminDashboard = () => (
@@ -430,25 +427,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Amenities recomendados para reservar */}
+      {/* Amenities disponibles para reservar */}
       <section className="space-y-4">
         <div className="flex items-center justify-between border-b border-brand-surface-bright/20 pb-2">
           <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
             Amenities Disponibles para Reservar
           </h3>
-          <span className="text-xs text-brand-primary font-semibold">Torre 1 • Depto 4B</span>
         </div>
 
+        {isLoadingAmenities && (
+          <div className="text-xs text-slate-500 py-4 text-center">Cargando amenities...</div>
+        )}
+
+        {!isLoadingAmenities && amenitiesList.length === 0 && (
+          <div className="text-xs text-slate-400 py-4 text-center">No hay amenities disponibles en este momento.</div>
+        )}
+
         <div className="grid md:grid-cols-3 gap-6">
-          {mockAmenities.map((amenity, idx) => (
+          {amenitiesList.map((amenity) => (
             <AmenityCard
-              key={idx}
-              title={amenity.title}
-              imageUrl={amenity.imageUrl}
-              statusLabel={amenity.statusLabel}
-              status={amenity.status}
-              capacity={amenity.capacity}
-              description={amenity.description}
+              key={amenity.idAmenity}
+              title={amenity.nombre}
+              imageUrl={''}
+              statusLabel={amenity.estado || 'Disponible'}
+              status={amenity.estado === 'MANTENIMIENTO' ? 'error' : amenity.estado === 'OCUPADO' ? 'warning' : 'success'}
+              capacity={amenity.capacidad}
+              description={amenity.nombreComplejo ? `Complejo: ${amenity.nombreComplejo}` : ''}
               onBookClick={() => router.push(ROUTES.RESERVAS_ADMIN)}
             />
           ))}
@@ -489,29 +493,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tarjeta de Pase QR de Ejemplo */}
+      {/* Accesos rápidos para invitado */}
       <section className="max-w-md mx-auto rounded-3xl border border-amber-500/30 bg-brand-surface p-6 shadow-lg text-center space-y-4">
         <div className="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
           </svg>
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Pase Temporal Activo</h3>
-          <p className="text-xs text-slate-500">Válido para hoy de 18:00 a 23:59 hs</p>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Acceso de Invitado</h3>
+          <p className="text-xs text-slate-500">Consultá tus autorizaciones de ingreso vigentes en el módulo de accesos.</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 inline-block shadow-inner">
-          {/* QR mock SVG */}
-          <svg className="w-36 h-36 mx-auto text-slate-800 dark:text-slate-100" viewBox="0 0 100 100" fill="currentColor">
-            <path d="M10 10h30v30H10zM15 15v20h20V15zM20 20h10v10H20zM60 10h30v30H60zM65 15v20h20V15zM70 20h10v10H70zM10 60h30v30H10zM15 65v20h20V65zM20 70h10v10H20zM50 50h10v10H50zM70 50h20v10H70zM50 70h20v20H50zM80 80h10v10H80z" />
-          </svg>
-        </div>
-
-        <p className="text-xs text-slate-400">
-          Presentá este código QR en la guardia de ingreso al ingresar al complejo.
-        </p>
+        <button
+          onClick={() => router.push('/dashboard/acceso')}
+          className="w-full py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold transition-all"
+        >
+          Ver mis autorizaciones de acceso →
+        </button>
       </section>
     </div>
   );

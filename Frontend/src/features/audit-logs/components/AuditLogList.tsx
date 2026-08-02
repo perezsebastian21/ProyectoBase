@@ -7,54 +7,6 @@ import type { AuditLog } from '@/types';
 import { Search, ShieldAlert, History, Filter } from 'lucide-react';
 import { TimelineModal } from './TimelineModal';
 
-const MOCK_AUDIT_LOGS: AuditLog[] = [
-  {
-    idAuditLog: 101,
-    usuario: 'admin@consorcio.com',
-    accion: 'CREAR_RESERVA',
-    entidad: 'Reserva',
-    entidadId: 45,
-    fechaHora: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    detalle: '{"idAmenity":1,"idUnidad":12,"fechaUso":"2026-08-01","estado":"CONFIRMADA"}'
-  },
-  {
-    idAuditLog: 102,
-    usuario: 'guardia@seguridad.com',
-    accion: 'CHECKIN_RESERVA',
-    entidad: 'Reserva',
-    entidadId: 44,
-    fechaHora: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    detalle: '{"checkInRealizado":true,"checkInFecha":"2026-07-29T12:00:00Z"}'
-  },
-  {
-    idAuditLog: 103,
-    usuario: 'admin@consorcio.com',
-    accion: 'REGISTRAR_INCIDENCIA',
-    entidad: 'Incidencia',
-    entidadId: 12,
-    fechaHora: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    detalle: '{"idAmenity":2,"descripcion":"Desperfecto técnico en parrilla","estado":"ABIERTA"}'
-  },
-  {
-    idAuditLog: 104,
-    usuario: 'admin@consorcio.com',
-    accion: 'RESOLVER_INCIDENCIA',
-    entidad: 'Incidencia',
-    entidadId: 12,
-    fechaHora: new Date(Date.now() - 1000 * 60 * 200).toISOString(),
-    detalle: '{"costoEstimado":15000,"detalleResolucion":"Se reparó la conexión de gas","estado":"RESUELTA"}'
-  },
-  {
-    idAuditLog: 105,
-    usuario: 'admin@consorcio.com',
-    accion: 'SANCIONAR_UNIDAD',
-    entidad: 'UnidadHabitacional',
-    entidadId: 4,
-    fechaHora: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-    detalle: '{"duracionDias":15,"aplicarSuspension":true,"motivo":"Inasistencias reiteradas no-show"}'
-  }
-];
-
 export default function AuditLogList() {
   const {
     items,
@@ -71,9 +23,8 @@ export default function AuditLogList() {
 
   const [timelineTarget, setTimelineTarget] = useState<{ entidad: string; idEntidad: number } | null>(null);
 
-  // Si no hay datos devueltos por el endpoint, usamos el MOCK de prueba
-  const displayItems = items && items.length > 0 ? items : MOCK_AUDIT_LOGS;
-  const effectiveTotal = items && items.length > 0 ? totalCount : MOCK_AUDIT_LOGS.length;
+  const displayItems = items ?? [];
+  const effectiveTotal = totalCount ?? 0;
   const totalPages = Math.ceil(effectiveTotal / limit) || 1;
 
   const columns: Column<AuditLog>[] = [
@@ -132,7 +83,7 @@ export default function AuditLogList() {
       <div className="pb-2 border-b border-brand-surface-bright/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 dark:from-blue-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent">
-            Registro de Auditoría & Trazabilidad (CU-09)
+            Registro de Auditoría &amp; Trazabilidad (CU-09)
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Historial completo de acciones y línea de tiempo de transiciones de estado (EventoAuditoria).

@@ -12,69 +12,6 @@ interface TimelineModalProps {
   idEntidad: number;
 }
 
-const MOCK_TIMELINE_EVENTOS: EventoAuditoria[] = [
-  {
-    idEvento: 1,
-    tenantId: 'tenant-001',
-    entidad: 'Reserva',
-    idEntidad: 45,
-    estadoAnterior: null,
-    estadoNuevo: 'EN_ESPERA',
-    idUsuario: 12,
-    origen: 'USUARIO',
-    detalle: 'El usuario solicitó anotarse en la lista de espera del amenity SUM',
-    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-  },
-  {
-    idEvento: 2,
-    tenantId: 'tenant-001',
-    entidad: 'Reserva',
-    idEntidad: 45,
-    estadoAnterior: 'EN_ESPERA',
-    estadoNuevo: 'NOTIFICADO',
-    idUsuario: null,
-    origen: 'JOB',
-    detalle: 'Liberación de turno por cancelación. Hold de 30 min asignado a la unidad',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-  },
-  {
-    idEvento: 3,
-    tenantId: 'tenant-001',
-    entidad: 'Reserva',
-    idEntidad: 45,
-    estadoAnterior: 'NOTIFICADO',
-    estadoNuevo: 'PENDIENTE_PAGO',
-    idUsuario: 12,
-    origen: 'USUARIO',
-    detalle: 'El usuario confirmó el hold dentro del límite de 30 minutos',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    idEvento: 4,
-    tenantId: 'tenant-001',
-    entidad: 'Reserva',
-    idEntidad: 45,
-    estadoAnterior: 'PENDIENTE_PAGO',
-    estadoNuevo: 'CONFIRMADA',
-    idUsuario: 12,
-    origen: 'SISTEMA',
-    detalle: 'Pago aprobado en pasarela. Comprobante de reserva generado.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    idEvento: 5,
-    tenantId: 'tenant-001',
-    entidad: 'Reserva',
-    idEntidad: 45,
-    estadoAnterior: 'CONFIRMADA',
-    estadoNuevo: 'Confirmed (Check-In)',
-    idUsuario: 5,
-    origen: 'GUARDIA',
-    detalle: 'Check-in presencial registrado en la terminal de portería por el guardia.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-  },
-];
-
 export const TimelineModal: React.FC<TimelineModalProps> = ({
   isOpen,
   onClose,
@@ -96,12 +33,11 @@ export const TimelineModal: React.FC<TimelineModalProps> = ({
       if (res.success && res.data && res.data.length > 0) {
         setEventos(res.data);
       } else {
-        // Fallback MOCK para testing/visualización si el backend aún no devolvió registros
-        setEventos(MOCK_TIMELINE_EVENTOS);
+        setEventos([]);
       }
     } catch (err: any) {
-      // Fallback a MOCK en desarrollo si falla el endpoint
-      setEventos(MOCK_TIMELINE_EVENTOS);
+      setErrorMsg(err?.message || 'Error al cargar el historial de eventos.');
+      setEventos([]);
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +78,19 @@ export const TimelineModal: React.FC<TimelineModalProps> = ({
             </div>
           )}
 
-          {!isLoading && (
+          {!isLoading && errorMsg && (
+            <div className="py-6 text-center text-sm text-red-500 dark:text-red-400 bg-red-500/10 rounded-xl border border-red-500/20 px-4">
+              {errorMsg}
+            </div>
+          )}
+
+          {!isLoading && !errorMsg && eventos.length === 0 && (
+            <div className="py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">
+              No hay eventos registrados para este registro.
+            </div>
+          )}
+
+          {!isLoading && !errorMsg && eventos.length > 0 && (
             <div className="relative pl-6 border-l-2 border-indigo-500/30 space-y-6 my-2">
               {eventos.map((ev, idx) => (
                 <div key={idx} className="relative group">

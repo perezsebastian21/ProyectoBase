@@ -45,13 +45,14 @@ export const CheckoutPagoModal: React.FC<CheckoutPagoModalProps> = ({
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    // Token simulado según el método de pago elegido
-    const mockToken = `TOK_${metodoPago}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    // El token de pasarela debe provenir del proveedor de pago real (MercadoPago, etc.)
+    // Por ahora se envía un identificador basado en el método seleccionado
+    const tokenPasarela = `${metodoPago}_${Date.now()}`;
 
     const payload: PagoRequestPayload = {
       idReserva,
       metodoPago,
-      tokenPasarela: mockToken,
+      tokenPasarela,
     };
 
     try {
@@ -63,15 +64,7 @@ export const CheckoutPagoModal: React.FC<CheckoutPagoModalProps> = ({
         setErrorMsg(res.errorMessage || 'El pago no pudo ser procesado por la pasarela.');
       }
     } catch (err: any) {
-      // Fallback simulado de respuesta exitosa si el backend no está respondiendo en desarrollo
-      const fallbackResult: PagoResponseDto = {
-        idReserva,
-        estadoReserva: 'CONFIRMADA',
-        pagoExitoso: true,
-        comprobante: `COMP-${Date.now()}-RES${idReserva}`,
-      };
-      setPagoResultado(fallbackResult);
-      if (onSuccess) onSuccess(fallbackResult);
+      setErrorMsg(err?.message || 'Error de conexión al procesar el pago. Intente nuevamente.');
     } finally {
       setIsSubmitting(false);
     }

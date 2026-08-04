@@ -34,9 +34,29 @@ namespace ProyectoBase.Controllers
 
             string token = _tokenService.GenerateUserToken(usuario);
 
-            var roles = usuario.UsuarioRoles != null && usuario.UsuarioRoles.Count > 0
-                ? System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(usuario.UsuarioRoles, ur => ur.Rol?.Codigo ?? ""))
-                : new System.Collections.Generic.List<string> { usuario.Rol ?? "INQUILINO" };
+            var roles = new System.Collections.Generic.List<string>();
+
+            if (usuario.UsuarioRoles != null && usuario.UsuarioRoles.Count > 0)
+            {
+                foreach (var ur in usuario.UsuarioRoles)
+                {
+                    var codigo = ur.Rol?.Codigo;
+                    if (!string.IsNullOrWhiteSpace(codigo) && !roles.Contains(codigo))
+                    {
+                        roles.Add(codigo);
+                    }
+                }
+            }
+
+            if (roles.Count == 0 && !string.IsNullOrWhiteSpace(usuario.Rol))
+            {
+                roles.Add(usuario.Rol);
+            }
+
+            if (roles.Count == 0)
+            {
+                roles.Add("INQUILINO");
+            }
 
             return Ok(new ServiceResponse<object>(new
             {

@@ -118,6 +118,39 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+
+    // 13.1 Seed programático e idempotente del usuario Juan Cruz y sus roles
+    var juanCruz = System.Linq.Enumerable.FirstOrDefault(
+        Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.Include(db.Usuarios, u => u.UsuarioRoles),
+        u => u.Username == "juancruz" || u.Email == "juancruz@consorcio.com");
+
+    if (juanCruz == null)
+    {
+        juanCruz = new Usuario
+        {
+            Username = "juancruz",
+            Email = "juancruz@consorcio.com",
+            Password = "123",
+            Rol = "SUPER_ADMINISTRADOR",
+            Activo = true
+        };
+        db.Usuarios.Add(juanCruz);
+        db.SaveChanges();
+    }
+
+    var rolesIds = System.Linq.Enumerable.ToList(
+        System.Linq.Enumerable.Select(
+            System.Linq.Enumerable.Where(db.Roles, r => r.Codigo == "SUPER_ADMINISTRADOR" || r.Codigo == "ADMINISTRADOR_AVANZADO"),
+            r => r.IDRol));
+
+    foreach (var idRol in rolesIds)
+    {
+        if (!System.Linq.Enumerable.Any(db.UsuariosRoles, ur => ur.IDUsuario == juanCruz.IDUsuario && ur.IDRol == idRol))
+        {
+            db.UsuariosRoles.Add(new UsuarioRol { IDUsuario = juanCruz.IDUsuario, IDRol = idRol });
+        }
+    }
+    db.SaveChanges();
 }
 
 // 14. Configurar el pipeline de middleware HTTP

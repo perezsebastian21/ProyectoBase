@@ -772,17 +772,6 @@ namespace ProyectoBase.Migrations
                         .IsUnique();
 
                     b.ToTable("PB_Usuario", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            IDUsuario = 1,
-                            Activo = true,
-                            Email = "juancruz@consorcio.com",
-                            Password = "123",
-                            Rol = "SUPER_ADMINISTRADOR",
-                            Username = "juancruz"
-                        });
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.UsuarioRol", b =>
@@ -807,20 +796,6 @@ namespace ProyectoBase.Migrations
                         .IsUnique();
 
                     b.ToTable("PB_UsuarioRol", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            IDUsuarioRol = 1,
-                            IDRol = 1,
-                            IDUsuario = 1
-                        },
-                        new
-                        {
-                            IDUsuarioRol = 2,
-                            IDRol = 2,
-                            IDUsuario = 1
-                        });
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.UsuarioUnidad", b =>

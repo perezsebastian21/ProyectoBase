@@ -274,18 +274,6 @@ namespace ProyectoBase.Models
 
                 entity.HasIndex(e => e.Email)
                       .IsUnique();
-
-                entity.HasData(
-                    new Usuario
-                    {
-                        IDUsuario = 1,
-                        Username = "juancruz",
-                        Email = "juancruz@consorcio.com",
-                        Password = "123",
-                        Rol = "SUPER_ADMINISTRADOR",
-                        Activo = true
-                    }
-                );
             });
 
             modelBuilder.Entity<Rol>(entity =>
@@ -321,11 +309,6 @@ namespace ProyectoBase.Models
                       .WithMany()
                       .HasForeignKey(x => x.IDRol)
                       .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasData(
-                    new UsuarioRol { IDUsuarioRol = 1, IDUsuario = 1, IDRol = 1 }, // SUPER_ADMINISTRADOR
-                    new UsuarioRol { IDUsuarioRol = 2, IDUsuario = 1, IDRol = 2 }  // ADMINISTRADOR_AVANZADO
-                );
             });
 
             modelBuilder.Entity<UsuarioUnidad>(entity =>

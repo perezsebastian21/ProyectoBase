@@ -68,20 +68,6 @@ namespace ProyectoBase.Migrations
                     { 7, "INVITADO", "Acceso temporal con vigencia acotada", "Invitado" }
                 });
 
-            migrationBuilder.InsertData(
-                table: "PB_Usuario",
-                columns: new[] { "IDUsuario", "Activo", "Email", "Password", "Rol", "Username" },
-                values: new object[] { 1, true, "juancruz@consorcio.com", "123", "SUPER_ADMINISTRADOR", "juancruz" });
-
-            migrationBuilder.InsertData(
-                table: "PB_UsuarioRol",
-                columns: new[] { "IDUsuarioRol", "IDRol", "IDUsuario" },
-                values: new object[,]
-                {
-                    { 1, 1, 1 },
-                    { 2, 2, 1 }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_PB_Rol_Codigo",
                 table: "PB_Rol",
@@ -108,11 +94,6 @@ namespace ProyectoBase.Migrations
 
             migrationBuilder.DropTable(
                 name: "PB_Rol");
-
-            migrationBuilder.DeleteData(
-                table: "PB_Usuario",
-                keyColumn: "IDUsuario",
-                keyValue: 1);
         }
     }
 }

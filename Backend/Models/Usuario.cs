@@ -8,5 +8,6 @@ namespace ProyectoBase.Models
         public string Email { get; set; }
         public string Rol { get; set; } = "INQUILINO"; // "SUPER_ADMINISTRADOR" | "ADMINISTRADOR_AVANZADO" | "ADMINISTRADOR_LIVIANO" | "GUARDIA" | "INQUILINO" | "PROPIETARIO" | "INVITADO"
         public bool Activo { get; set; } = true;
+        public System.Collections.Generic.ICollection<UsuarioRol> UsuarioRoles { get; set; } = new System.Collections.Generic.List<UsuarioRol>();
     }
 }

@@ -1854,17 +1854,31 @@ dotnet ef migrations script --output "scripts/notif_b_NotificacionIntento.sql" -
 #### Entidades nuevas / enmendadas
 
 ```csharp
+// Models/Rol.cs — Catálogo de roles del sistema
+public class Rol {
+    public int     IDRol        { get; set; }
+    public string  Codigo       { get; set; }   // "SUPER_ADMINISTRADOR" | "ADMINISTRADOR_AVANZADO" | "ADMINISTRADOR_LIVIANO" | "GUARDIA" | "INQUILINO" | "PROPIETARIO" | "INVITADO"
+    public string  Nombre       { get; set; }
+    public string? Descripcion  { get; set; }
+}
+
+// Models/UsuarioRol.cs — Relación muchos-a-muchos (múltiples roles por usuario)
+public class UsuarioRol {
+    public int      IDUsuarioRol { get; set; }
+    public int      IDUsuario    { get; set; }
+    public int      IDRol        { get; set; }
+    public Usuario  Usuario      { get; set; }
+    public Rol      Rol          { get; set; }
+}
+
 // Models/Usuario.cs
 public class Usuario {
     public int     IDUsuario    { get; set; }
-    public string  Email        { get; set; }   // único; usado como login (excepto INVITADO, ver abajo)
-    public string  PasswordHash { get; set; }
-    public string  Rol          { get; set; }
-    // "SUPER_ADMINISTRADOR" | "ADMINISTRADOR_LIVIANO" | "ADMINISTRADOR_AVANZADO"
-    // | "GUARDIA" | "INQUILINO" | "PROPIETARIO" | "INVITADO"
+    public string  Username     { get; set; }   // único
+    public string  Email        { get; set; }   // único; usado como login
+    public string  Password     { get; set; }   // almacena hash seguro en producción
     public bool    Activo       { get; set; }   // default: true
-    [Obsolete("Usar UsuarioUnidad — se mantiene solo para compatibilidad durante el backfill de datos existentes")]
-    public int?    IDUnidadHabitacional { get; set; }
+    public ICollection<UsuarioRol> UsuarioRoles { get; set; } = new List<UsuarioRol>();
 }
 
 // Models/UsuarioUnidad.cs — reemplaza el FK simple, muchos-a-muchos
@@ -1889,13 +1903,31 @@ public class TokenRevocado {
 ```
 
 ```csharp
+modelBuilder.Entity<Rol>(e => {
+    e.ToTable("PB_Rol");
+    e.HasKey(x => x.IDRol);
+    e.Property(x => x.Codigo).IsRequired().HasMaxLength(30);
+    e.HasIndex(x => x.Codigo).IsUnique();
+    e.Property(x => x.Nombre).IsRequired().HasMaxLength(100);
+    e.Property(x => x.Descripcion).HasMaxLength(250);
+});
+
+modelBuilder.Entity<UsuarioRol>(e => {
+    e.ToTable("PB_UsuarioRol");
+    e.HasKey(x => x.IDUsuarioRol);
+    e.HasIndex(x => new { x.IDUsuario, x.IDRol }).IsUnique();
+    e.HasOne(x => x.Usuario).WithMany(u => u.UsuarioRoles).HasForeignKey(x => x.IDUsuario).OnDelete(DeleteBehavior.Cascade);
+    e.HasOne(x => x.Rol).WithMany().HasForeignKey(x => x.IDRol).OnDelete(DeleteBehavior.Cascade);
+});
+
 modelBuilder.Entity<Usuario>(e => {
     e.ToTable("PB_Usuario");
     e.HasKey(x => x.IDUsuario);
-    e.Property(x => x.Email).IsRequired().HasMaxLength(100);
+    e.Property(x => x.Username).IsRequired().HasMaxLength(100);
+    e.HasIndex(x => x.Username).IsUnique();
+    e.Property(x => x.Email).IsRequired().HasMaxLength(250);
     e.HasIndex(x => x.Email).IsUnique();
-    e.Property(x => x.PasswordHash).IsRequired().HasMaxLength(256);
-    e.Property(x => x.Rol).IsRequired().HasMaxLength(25);
+    e.Property(x => x.Password).IsRequired().HasMaxLength(255);
     e.Property(x => x.Activo).HasDefaultValue(true);
 });
 

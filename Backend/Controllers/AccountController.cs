@@ -32,13 +32,18 @@ namespace ProyectoBase.Controllers
             if (usuario == null)
                 return Unauthorized(new { message = "Usuario o contraseña incorrectos." });
 
-            string token = _tokenService.GenerateAdminToken(usuario.Username);
+            string token = _tokenService.GenerateUserToken(usuario);
+
+            var roles = usuario.UsuarioRoles != null && usuario.UsuarioRoles.Count > 0
+                ? System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(usuario.UsuarioRoles, ur => ur.Rol?.Codigo ?? ""))
+                : new System.Collections.Generic.List<string> { usuario.Rol ?? "INQUILINO" };
 
             return Ok(new ServiceResponse<object>(new
             {
                 token = token,
                 expiration = DateTime.UtcNow.AddHours(1),
-                username = usuario.Username
+                username = usuario.Username,
+                roles = roles
             }));
         }
     }

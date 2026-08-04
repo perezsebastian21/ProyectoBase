@@ -17,6 +17,8 @@ namespace ProyectoBase.Services.UsuarioService
         public async Task<Usuario> ValidarCredenciales(string username, string password)
         {
             return await _context.Usuarios
+                .Include(u => u.UsuarioRoles)
+                    .ThenInclude(ur => ur.Rol)
                 .FirstOrDefaultAsync(u =>
                     u.Username == username &&
                     u.Password == password &&

@@ -235,6 +235,48 @@ Permite al residente cancelar su lugar en la lista de espera antes de ser notifi
 
 ---
 
+### 1.5 Autenticación y Obtención de JWT Multi-Rol (`POST /Account/Login`)
+Permite a cualquier usuario autenticarse mediante usuario/email y contraseña. Si las credenciales son válidas, devuelve el token JWT firmado con los claims de roles correspondientes y la lista de roles asignados en `PB_UsuarioRol`.
+
+* **HTTP Method**: `POST`
+* **Ruta**: `/Account/Login`
+* **Cabecera HTTP requerida**: `Content-Type: application/json`
+* **Payload Request (`Body JSON`)**:
+```json
+{
+  "usuario": "seba",
+  "password": "miPasswordSeguro123"
+}
+```
+* **Respuesta Exitosa (`200 OK`)**:
+```json
+{
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiSU5RVUlMSU5PIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlBST1BJRVRBUklPIn0...",
+    "expiration": "2026-08-04T12:30:00Z",
+    "username": "seba",
+    "roles": [
+      "INQUILINO",
+      "PROPIETARIO"
+    ]
+  },
+  "success": true,
+  "errorMessage": null
+}
+```
+* **Respuesta Error de Credenciales (`401 Unauthorized`)**:
+```json
+{
+  "message": "Usuario o contraseña incorrectos."
+}
+```
+
+> 🔒 **Uso de la Cabecera de Autorización en el Frontend**:  
+> Para consumir cualquier endpoint protegido, el Frontend debe incluir la cabecera HTTP:  
+> `Authorization: Bearer <token>`
+
+---
+
 ## ✏️ 2. Enmiendas en Modelos y Endpoints Existentes
 
 ### 2.1 Entidad `Reserva` (`GET /Reserva`, `POST /Reserva`, `GET /Reserva/{id}`)
@@ -289,18 +331,22 @@ Se agregan los campos `idUsuario`, `fechaNotificacion`, `fechaResolucion` y `mot
 
 ---
 
-### 2.3 Entidad `Usuario` (Modelo de 6 Roles)
-El campo `rol` en el objeto `Usuario` o en los claims JWT retornados en Login acepta ahora los siguientes **6 valores estandarizados**:
+### 2.3 Entidad `Usuario` (Modelo Multi-Rol)
+El sistema soporta asignación de múltiples roles por usuario a través de la tabla de catálogo `PB_Rol` y la tabla relacional `PB_UsuarioRol`. En la autenticación (`POST /Account/Login`), el servidor inyecta todos los roles activos del usuario como claims `ClaimTypes.Role` dentro del JWT, además de retornar un array `roles` en la respuesta JSON.
 
-1. `"SUPER_ADMINISTRADOR"`
-2. `"ADMINISTRADOR_AVANZADO"`
-3. `"ADMINISTRADOR_LIVIANO"`
-4. `"GUARDIA"`
-5. `"INQUILINO"`
-6. `"PROPIETARIO"`
-7. `"INVITADO"`
+Los **7 roles estandarizados** del sistema son:
 
-> **Nota para Frontend**: El claim `"RESIDENTE"` sigue funcionando como alias de (`INQUILINO` + `PROPIETARIO`) para vistas compartidas de reservas y amenities.
+1. `"SUPER_ADMINISTRADOR"`: Acceso total cross-tenant y administración de consorcios.
+2. `"ADMINISTRADOR_AVANZADO"`: Administración operativa y configuración completa del consorcio.
+3. `"ADMINISTRADOR_LIVIANO"`: Gestión del día a día para consorcios sin guardia dedicado.
+4. `"GUARDIA"`: Exclusivo para consorcios con guardia dedicado (check-in y reporte de incidencias).
+5. `"PROPIETARIO"`: Miembro del grupo de residentes con supervisión de lectura sobre sus unidades.
+6. `"INQUILINO"`: Residente operativo del día a día (reservas y uso de amenities).
+7. `"INVITADO"`: Usuario temporal con vigencia acotada a una invitación.
+
+> 🔑 **Políticas de Autorización (Authorization Policies)**:
+> - **Policy `"RESIDENTE"`**: Otorga acceso si el usuario posee al menos uno de los roles `INQUILINO` o `PROPIETARIO`.
+> - **Policy `"ADMINISTRADOR"`**: Otorga acceso si el usuario posee al menos uno de los roles `ADMINISTRADOR_AVANZADO` o `SUPER_ADMINISTRADOR`.
 
 ---
 

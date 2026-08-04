@@ -26,6 +26,8 @@ namespace ProyectoBase.Models
         public DbSet<UsuarioUnidad> UsuariosUnidades { get; set; }
         public DbSet<PoliticaCancelacionTramo> PoliticasCancelacionTramos { get; set; }
         public DbSet<NotificacionIntento> NotificacionesIntentos { get; set; }
+        public DbSet<Rol> Roles { get; set; }
+        public DbSet<UsuarioRol> UsuariosRoles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -273,6 +275,41 @@ namespace ProyectoBase.Models
                 entity.HasIndex(e => e.Email)
                       .IsUnique();
 
+            });
+
+            modelBuilder.Entity<Rol>(entity =>
+            {
+                entity.ToTable("PB_Rol");
+                entity.HasKey(x => x.IDRol);
+                entity.Property(x => x.Codigo).IsRequired().HasMaxLength(30);
+                entity.HasIndex(x => x.Codigo).IsUnique();
+                entity.Property(x => x.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.Descripcion).HasMaxLength(250);
+
+                entity.HasData(
+                    new Rol { IDRol = 1, Codigo = "SUPER_ADMINISTRADOR", Nombre = "Super Administrador", Descripcion = "Acceso total cross-tenant" },
+                    new Rol { IDRol = 2, Codigo = "ADMINISTRADOR_AVANZADO", Nombre = "Administrador Avanzado", Descripcion = "Gestión completa del consorcio" },
+                    new Rol { IDRol = 3, Codigo = "ADMINISTRADOR_LIVIANO", Nombre = "Administrador Liviano", Descripcion = "Operativo día a día sin guardia" },
+                    new Rol { IDRol = 4, Codigo = "GUARDIA", Nombre = "Guardia / Seguridad", Descripcion = "Control de accesos y portería" },
+                    new Rol { IDRol = 5, Codigo = "PROPIETARIO", Nombre = "Propietario", Descripcion = "Dueño de unidad con supervisión" },
+                    new Rol { IDRol = 6, Codigo = "INQUILINO", Nombre = "Inquilino", Descripcion = "Residente operativo de unidad" },
+                    new Rol { IDRol = 7, Codigo = "INVITADO", Nombre = "Invitado", Descripcion = "Acceso temporal con vigencia acotada" }
+                );
+            });
+
+            modelBuilder.Entity<UsuarioRol>(entity =>
+            {
+                entity.ToTable("PB_UsuarioRol");
+                entity.HasKey(x => x.IDUsuarioRol);
+                entity.HasIndex(x => new { x.IDUsuario, x.IDRol }).IsUnique();
+                entity.HasOne(x => x.Usuario)
+                      .WithMany(u => u.UsuarioRoles)
+                      .HasForeignKey(x => x.IDUsuario)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Rol)
+                      .WithMany()
+                      .HasForeignKey(x => x.IDRol)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<UsuarioUnidad>(entity =>

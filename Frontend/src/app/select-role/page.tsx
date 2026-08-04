@@ -13,6 +13,8 @@ export default function SelectRolePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentActiveRole, setCurrentActiveRole] = useState<UserRole | null>(null);
 
+  const [userAssignedRoles, setUserAssignedRoles] = useState<UserRole[]>([]);
+
   useEffect(() => {
     // Verificar si ya tiene un rol activo previo
     const active = roleService.getActiveRole();
@@ -20,6 +22,8 @@ export default function SelectRolePage() {
       setCurrentActiveRole(active);
       setSelectedRole(active);
     }
+    const assigned = roleService.getUserRoles();
+    setUserAssignedRoles(assigned);
   }, []);
 
   const handleSelectRole = (role: UserRole) => {
@@ -48,7 +52,7 @@ export default function SelectRolePage() {
     router.push('/login');
   };
 
-  const roleKeys: UserRole[] = [
+  const allRoles: UserRole[] = [
     'SUPER_ADMINISTRADOR',
     'ADMINISTRADOR_AVANZADO',
     'ADMINISTRADOR_LIVIANO',
@@ -57,6 +61,9 @@ export default function SelectRolePage() {
     'PROPIETARIO',
     'INVITADO',
   ];
+
+  // Si el usuario tiene roles asignados devueltos por la API, mostrar solo esos; de lo contrario mostrar todos en modo demo
+  const roleKeys: UserRole[] = userAssignedRoles.length > 0 ? userAssignedRoles : allRoles;
 
   return (
     <div className="min-h-screen bg-brand-background text-slate-800 dark:text-slate-100 flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-300">

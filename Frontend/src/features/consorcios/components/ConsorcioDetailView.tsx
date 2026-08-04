@@ -160,7 +160,7 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
   }
 
   const activeRole = roleService.getActiveRole();
-  const isConsorcioRole = activeRole === 'Consorcio';
+  const isConsorcioRole = activeRole === 'ADMINISTRADOR_AVANZADO';
   const backRoute = isConsorcioRole ? ROUTES.HOME : ROUTES.CONSORCIOS;
   const backLabel = isConsorcioRole ? 'Volver al Panel Principal' : 'Volver al listado de Consorcios';
 

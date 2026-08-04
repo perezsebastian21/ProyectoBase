@@ -5,10 +5,7 @@ export type UserRole =
   | 'GUARDIA'
   | 'INQUILINO'
   | 'PROPIETARIO'
-  | 'INVITADO'
-  // Legacy aliases (compatibilidad hacia atrás)
-  | 'SuperAdmin'
-  | 'Consorcio';
+  | 'INVITADO';
 
 export interface RoleConfig {
   id: UserRole;
@@ -142,30 +139,5 @@ export const USER_ROLES: Record<UserRole, RoleConfig> = {
       'Reglamento y Normas de Convivencia',
       'Contacto con Seguridad / Recepción'
     ]
-  },
-  // Legacy aliases
-  SuperAdmin: {
-    id: 'SuperAdmin',
-    title: 'Super Administrador (Legacy)',
-    subtitle: 'Administración Global',
-    description: 'Alias legacy de SUPER_ADMINISTRADOR.',
-    badge: 'Super Admin',
-    badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
-    gradient: 'from-purple-600 via-indigo-600 to-blue-600',
-    iconBg: 'from-purple-500 to-indigo-600',
-    defaultRoute: '/',
-    features: ['Gestión de Consorcios y Complejos']
-  },
-  Consorcio: {
-    id: 'Consorcio',
-    title: 'Admin Consorcio (Legacy)',
-    subtitle: 'Gestión Edificio',
-    description: 'Alias legacy de ADMINISTRADOR_AVANZADO.',
-    badge: 'Gestión Edificio',
-    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-    gradient: 'from-blue-600 via-cyan-600 to-teal-500',
-    iconBg: 'from-blue-500 to-cyan-600',
-    defaultRoute: '/',
-    features: ['Gestión de Amenities del Edificio']
   }
 };

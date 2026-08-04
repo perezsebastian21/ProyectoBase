@@ -52,7 +52,7 @@ export default function Home() {
   const [selectedConsorcioId, setSelectedConsorcioId] = useState<string>('');
   const [selectedComplejoId, setSelectedComplejoId] = useState<string>('');
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
-  const [activeRole, setActiveRole] = useState<UserRole>('SuperAdmin');
+  const [activeRole, setActiveRole] = useState<UserRole>('SUPER_ADMINISTRADOR');
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
 
@@ -72,7 +72,7 @@ export default function Home() {
   // Leer tab y rol activo al montar
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const role = roleService.getActiveRole() || 'SuperAdmin';
+      const role = roleService.getActiveRole() || 'SUPER_ADMINISTRADOR';
       setActiveRole(role);
 
       const token = getCookie('auth_token') || '';
@@ -171,7 +171,7 @@ export default function Home() {
     }
 
     fetchCounts();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Cargar amenities para el rol Inquilino
@@ -524,7 +524,6 @@ export default function Home() {
       case 'inicio':
         switch (activeRole) {
           case 'ADMINISTRADOR_AVANZADO':
-          case 'Consorcio':
             return renderConsorcioDashboard();
           case 'ADMINISTRADOR_LIVIANO':
           case 'GUARDIA':
@@ -554,13 +553,12 @@ export default function Home() {
           case 'INVITADO':
             return renderInvitadoDashboard();
           case 'SUPER_ADMINISTRADOR':
-          case 'SuperAdmin':
           default:
             return renderSuperAdminDashboard();
         }
 
       case 'perfil':
-        const roleConfig = USER_ROLES[activeRole] || USER_ROLES.SuperAdmin;
+        const roleConfig = USER_ROLES[activeRole] || USER_ROLES.SUPER_ADMINISTRADOR;
 
         return (
           <div className="max-w-md mx-auto space-y-6 animate-fade-in">

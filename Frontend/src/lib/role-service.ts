@@ -2,6 +2,7 @@ import { UserRole } from '@/types/roles';
 
 const ROLE_COOKIE_NAME = 'auth_role';
 const ROLE_STORAGE_KEY = 'auth_role';
+const USER_ROLES_STORAGE_KEY = 'auth_user_roles';
 
 const VALID_ROLES: UserRole[] = [
   'SUPER_ADMINISTRADOR',
@@ -11,8 +12,6 @@ const VALID_ROLES: UserRole[] = [
   'INQUILINO',
   'PROPIETARIO',
   'INVITADO',
-  'SuperAdmin',
-  'Consorcio'
 ];
 
 export const roleService = {
@@ -52,6 +51,32 @@ export const roleService = {
   },
 
   /**
+   * Obtiene la lista de roles asignados al usuario autenticado (del login)
+   */
+  getUserRoles(): UserRole[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(USER_ROLES_STORAGE_KEY);
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((r) => VALID_ROLES.includes(r as UserRole)) as UserRole[];
+      }
+    } catch {
+      // Ignorar error de parsing
+    }
+    return [];
+  },
+
+  /**
+   * Guarda la lista de roles asignados devuelta en el JWT/Login
+   */
+  setUserRoles(roles: UserRole[]): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(USER_ROLES_STORAGE_KEY, JSON.stringify(roles));
+  },
+
+  /**
    * Elimina la cookie y el localStorage del rol
    */
   clearActiveRole(): void {
@@ -59,5 +84,6 @@ export const roleService = {
 
     document.cookie = `${ROLE_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
     localStorage.removeItem(ROLE_STORAGE_KEY);
+    localStorage.removeItem(USER_ROLES_STORAGE_KEY);
   }
 };

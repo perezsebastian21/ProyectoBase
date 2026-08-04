@@ -47,10 +47,10 @@ export default function ConsorcioList() {
     deleteConsorcio,
   } = useConsorcios();
 
-  // Si el rol activo es Consorcio, redirigir automáticamente al perfil de su Consorcio Activo
+  // Si el rol activo es Administrador Avanzado, redirigir automáticamente al perfil de su Consorcio Activo
   useEffect(() => {
     const role = roleService.getActiveRole();
-    if (role === 'Consorcio') {
+    if (role === 'ADMINISTRADOR_AVANZADO') {
       const targetId = consorcioActivo?.id || (items.length > 0 ? items[0].idConsorcio : 1);
       router.replace(`/dashboard/consorcios/${targetId}`);
     }

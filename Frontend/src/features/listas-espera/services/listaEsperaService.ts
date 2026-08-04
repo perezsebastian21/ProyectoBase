@@ -99,4 +99,10 @@ export const listaEsperaService = {
       method: 'DELETE',
     });
   },
+
+  async retiroVoluntario(id: number): Promise<ServiceResponse<ListaEspera>> {
+    return apiClient<ServiceResponse<ListaEspera>>(`/ListaEspera/${id}/RetiroVoluntario`, {
+      method: 'DELETE',
+    });
+  },
 };

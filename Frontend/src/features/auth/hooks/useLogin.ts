@@ -3,6 +3,7 @@
 import { useState, useCallback, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '../services/authService';
+import { roleService } from '@/lib/role-service';
 import type { LoginFormState } from '../types/auth.types';
 
 /**
@@ -71,6 +72,7 @@ export function useLogin() {
         const token = response.data.token;
         const expiration = response.data.expiration;
         const username = response.data.username;
+        const roles = response.data.roles || [];
         
         document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
         
@@ -79,13 +81,24 @@ export function useLogin() {
           localStorage.setItem('auth_expiration', expiration || '');
         }
 
-        // Redirigir a la pantalla de selección de rol (/select-role)
+        // Guardar la lista de roles asignados devuelta en el token
+        roleService.setUserRoles(roles);
+
         const targetRedirect = searchParams.get('redirect');
-        const selectRoleUrl = targetRedirect && targetRedirect !== '/' 
-          ? `/select-role?redirect=${encodeURIComponent(targetRedirect)}`
-          : '/select-role';
-          
-        router.push(selectRoleUrl);
+
+        // Si el usuario sólo tiene 1 rol, fijarlo activamente y redirigir directamente
+        if (roles.length === 1) {
+          roleService.setActiveRole(roles[0]);
+          const destination = targetRedirect || '/';
+          router.push(destination);
+        } else {
+          // Si tiene múltiples roles (o ninguno por fallback), ir a /select-role
+          const selectRoleUrl = targetRedirect && targetRedirect !== '/' 
+            ? `/select-role?redirect=${encodeURIComponent(targetRedirect)}`
+            : '/select-role';
+            
+          router.push(selectRoleUrl);
+        }
       } catch (err) {
         const message =
           err instanceof Error

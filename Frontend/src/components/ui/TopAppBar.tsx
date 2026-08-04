@@ -72,8 +72,8 @@ export default function TopAppBar({
           <div className="w-16 h-6" />
         )}
 
-        {/* Chip: Perfil de Consorcio/Edificio activo — solo visible para el rol Consorcio */}
-        {activeRole === 'Consorcio' && (consorcioActivo || complejoActivo) && (
+        {/* Chip: Perfil de Consorcio/Edificio activo — solo visible para el rol Administrador Avanzado */}
+        {activeRole === 'ADMINISTRADOR_AVANZADO' && (consorcioActivo || complejoActivo) && (
           <button
             onClick={() => router.push('/')}
             title="Clic para cambiar el edificio activo"

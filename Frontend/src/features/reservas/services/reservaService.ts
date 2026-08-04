@@ -89,8 +89,8 @@ export const reservaService = {
     });
   },
 
-  async checkIn(id: number): Promise<ApiResponse<boolean>> {
-    return apiClient<ApiResponse<boolean>>(API_ENDPOINTS.RESERVA_ACCIONES.CHECK_IN(id), {
+  async checkIn(id: number): Promise<ApiResponse<Reserva>> {
+    return apiClient<ApiResponse<Reserva>>(API_ENDPOINTS.RESERVA_ACCIONES.CHECK_IN(id), {
       method: 'POST',
     });
   },

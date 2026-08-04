@@ -106,7 +106,7 @@ export default function BottomNavBar({ activeTab, onChange, role: propRole }: Bo
   };
 
   // Configuración de pestañas específicas por cada Rol del SPEC-AUTH v2
-  const roleNavItems: Record<UserRole, NavItemConfig[]> = {
+  const roleNavItems: Record<string, NavItemConfig[]> = {
     SUPER_ADMINISTRADOR: [
       { id: "inicio", label: "Inicio", icon: icons.inicio },
       { id: "consorcios", label: "Consorcios", icon: icons.consorcios },
@@ -149,20 +149,6 @@ export default function BottomNavBar({ activeTab, onChange, role: propRole }: Bo
     INVITADO: [
       { id: "inicio", label: "Inicio", icon: icons.inicio },
       { id: "pase", label: "Mi Pase", icon: icons.pase },
-      { id: "perfil", label: "Perfil", icon: icons.perfil },
-    ],
-    // Legacy aliases
-    SuperAdmin: [
-      { id: "inicio", label: "Inicio", icon: icons.inicio },
-      { id: "consorcios", label: "Consorcios", icon: icons.consorcios },
-      { id: "complejos", label: "Complejos", icon: icons.complejos },
-      { id: "perfil", label: "Perfil", icon: icons.perfil },
-    ],
-    Consorcio: [
-      { id: "inicio", label: "Inicio", icon: icons.inicio },
-      { id: "amenities", label: "Amenities", icon: icons.amenities },
-      { id: "reservas", label: "Reservas", icon: icons.reservas },
-      { id: "incidencias", label: "Incidencias", icon: icons.incidencias },
       { id: "perfil", label: "Perfil", icon: icons.perfil },
     ],
   };

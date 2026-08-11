@@ -1,14 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Building2, Home, CheckCircle2, AlertTriangle, Clock, ShieldCheck, Users, Info } from 'lucide-react';
+import { Building2, Home, CheckCircle2, AlertTriangle, Clock, ShieldCheck, Users, Info, UserPlus } from 'lucide-react';
 import { propietarioService, UnidadPropietarioResumen } from '../services/propietarioService';
+import { InvitarInquilinoModal } from '@/features/invitaciones/components/InvitarInquilinoModal';
 
 export const MisUnidadesDashboard: React.FC = () => {
   const [data, setData] = useState<UnidadPropietarioResumen[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
+
+  // Modal de Invitación a Inquilinos
+  const [modalUnidad, setModalUnidad] = useState<{
+    isOpen: boolean;
+    idUnidad: number;
+    identificador: string;
+  }>({
+    isOpen: false,
+    idUnidad: 0,
+    identificador: '',
+  });
 
   const cargarUnidades = async () => {
     setIsLoading(true);
@@ -116,8 +128,22 @@ export const MisUnidadesDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Badges de Estado */}
-                <div className="flex flex-wrap gap-2">
+                {/* Badges y Acciones de la Unidad */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() =>
+                      setModalUnidad({
+                        isOpen: true,
+                        idUnidad: item.unidad.idUnidadHabitacional,
+                        identificador: item.unidad.identificador,
+                      })
+                    }
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Invitar Inquilino</span>
+                  </button>
+
                   {item.unidad.debeExpensas ? (
                     <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
                       Deuda Expensas: ${item.unidad.saldoActual}
@@ -186,6 +212,14 @@ export const MisUnidadesDashboard: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Modal para invitar inquilino */}
+      <InvitarInquilinoModal
+        isOpen={modalUnidad.isOpen}
+        onClose={() => setModalUnidad((prev) => ({ ...prev, isOpen: false }))}
+        idUnidadHabitacional={modalUnidad.idUnidad}
+        identificadorUnidad={modalUnidad.identificador}
+      />
     </div>
   );
 };

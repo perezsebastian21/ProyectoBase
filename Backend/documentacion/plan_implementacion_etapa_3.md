@@ -61,6 +61,13 @@ Se requiere implementar los cambios especificados en [implementacion_etapa_3.md]
 #### [MODIFY] [ListaEsperaController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/ListaEsperaController.cs)
 - Agregar endpoint `DELETE /ListaEspera/{id}` (retiro voluntario).
 
+#### [NEW] [RolController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/RolController.cs) & [MODIFY] [UsuarioController.cs](file:///C:/DesarrolloGIT/ProyectoBase/Backend/Controllers/UsuarioController.cs)
+- Endpoints de administración de roles para SuperAdmin / Administrador:
+  - `GET /Rol`: Obtener el catálogo completo de roles (`PB_Rol`).
+  - `GET /Usuario/{idUsuario}/Roles`: Consultar roles asignados a un usuario.
+  - `POST /Usuario/{idUsuario}/Roles`: Asignar un rol a un usuario (`PB_UsuarioRol`).
+  - `DELETE /Usuario/{idUsuario}/Roles/{idRol}`: Remover un rol de un usuario.
+
 ---
 
 ### 3. Migraciones EF Core (`Backend/Migrations/`)

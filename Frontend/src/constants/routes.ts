@@ -33,6 +33,7 @@ export const ROUTES = {
   ADMINISTRADORES: '/dashboard/administradores',
 
   // ABMs & Módulos
+  USUARIOS: '/dashboard/usuarios',
   PERSONAS: '/dashboard/personas',
   UNIDADES: '/dashboard/unidades',
   INQUILINOS: '/dashboard/inquilinos',

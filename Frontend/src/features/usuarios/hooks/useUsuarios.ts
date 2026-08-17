@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usuarioService } from '../services/usuarioService';
+import { rolService } from '../services/rolService';
 import type { Usuario, CreateUsuarioPayload, UpdateUsuarioPayload } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -32,7 +33,24 @@ export function useUsuarios() {
   const error = queryError ? (queryError as Error).message : null;
 
   const createMutation = useMutation({
-    mutationFn: (payload: CreateUsuarioPayload) => usuarioService.create(payload),
+    mutationFn: async (payload: CreateUsuarioPayload) => {
+      const { idRol, ...userPayload } = payload;
+      const res = await usuarioService.create(userPayload);
+      if (!res.success || !res.data) {
+        throw new Error(res.errorMessage || 'Error al crear usuario');
+      }
+
+      // Si se seleccionó un rol inicial, lo asignamos de inmediato
+      if (idRol && res.data.idUsuario) {
+        try {
+          await rolService.asignarRol(res.data.idUsuario, { idRol: Number(idRol) });
+        } catch (roleErr: any) {
+          console.warn('Usuario creado, pero hubo una advertencia al asignar el rol:', roleErr);
+        }
+      }
+
+      return res;
+    },
     onSuccess: (res) => {
       if (res.success) {
         queryClient.invalidateQueries({ queryKey: ['usuarios'] });

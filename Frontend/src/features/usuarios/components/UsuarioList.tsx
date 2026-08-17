@@ -1,15 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useUsuarios } from '../hooks/useUsuarios';
 import UsuarioFormModal from './UsuarioFormModal';
+import { GestionRolesModal } from './GestionRolesModal';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { CreateButton } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
 import type { Usuario } from '../types';
-import { Search, UserCheck } from 'lucide-react';
+import { Search, UserCheck, Shield } from 'lucide-react';
 
 export default function UsuarioList() {
+  const [rolesModalUsuario, setRolesModalUsuario] = useState<Usuario | null>(null);
   const {
     items,
     totalCount,
@@ -78,6 +80,19 @@ export default function UsuarioList() {
         }`}>
           {row.activo ? 'Activo' : 'Inactivo'}
         </span>
+      )
+    },
+    {
+      header: 'Roles',
+      accessor: (row) => (
+        <button
+          onClick={(e) => { e.stopPropagation(); setRolesModalUsuario(row); }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition active:scale-95 cursor-pointer"
+          title="Gestionar roles"
+        >
+          <Shield className="w-3.5 h-3.5" />
+          <span>Roles</span>
+        </button>
       )
     },
   ];
@@ -188,6 +203,15 @@ export default function UsuarioList() {
           </div>
         </div>
       </Modal>
+
+      {rolesModalUsuario && (
+        <GestionRolesModal
+          isOpen={!!rolesModalUsuario}
+          onClose={() => setRolesModalUsuario(null)}
+          idUsuario={rolesModalUsuario.idUsuario}
+          username={rolesModalUsuario.username}
+        />
+      )}
     </div>
   );
 }

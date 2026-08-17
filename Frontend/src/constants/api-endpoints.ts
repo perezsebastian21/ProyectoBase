@@ -57,6 +57,14 @@ export const API_ENDPOINTS = {
     DELETE: (id: number) => `/consorcio/${id}` as const,
   },
 
+  // Roles de Usuario
+  ROL: {
+    GET_ALL: '/Rol',
+    GET_BY_USUARIO: (idUsuario: number) => `/Usuario/${idUsuario}/Roles` as const,
+    ASIGNAR: (idUsuario: number) => `/Usuario/${idUsuario}/Roles` as const,
+    REMOVER: (idUsuario: number, idRol: number) => `/Usuario/${idUsuario}/Roles/${idRol}` as const,
+  },
+
   // Complejos
   COMPLEJO: {
     GET_ALL: '/complejo/getall',

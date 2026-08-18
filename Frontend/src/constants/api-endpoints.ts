@@ -201,6 +201,18 @@ export const API_ENDPOINTS = {
     FIND_QP: '/UsuarioUnidad/FindQP',
     CREATE: '/UsuarioUnidad',
     DELETE: (id: number) => `/UsuarioUnidad/${id}` as const,
+    PENDIENTES: '/api/usuario-unidad/pendientes',
+    APROBAR: (id: number) => `/api/usuario-unidad/${id}/aprobar` as const,
+    RECHAZAR: (id: number) => `/api/usuario-unidad/${id}/rechazar` as const,
+  },
+
+  // Invitaciones y Onboarding
+  INVITACIONES: {
+    CREAR_ADMIN: '/api/invitaciones/crear-admin',
+    MASIVAS: '/api/invitaciones/masivas',
+    INQUILINO: '/api/invitaciones/inquilino',
+    VALIDAR: (token: string) => `/api/invitaciones/validar/${token}` as const,
+    ACEPTAR: '/api/invitaciones/aceptar',
   },
 
   // Políticas de Cancelación (Tramos de Penalidad)

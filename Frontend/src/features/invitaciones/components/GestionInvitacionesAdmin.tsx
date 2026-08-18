@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Building2,
   Send,
@@ -16,8 +16,10 @@ import {
   X,
   Share2,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { invitacionService } from '../services/invitacionService';
+import { unidadService } from '@/features/unidades/services/unidadService';
 import type { CrearInvitacionesMasivasDto } from '../types';
 
 interface UnidadEstadoItem {
@@ -41,24 +43,40 @@ export const GestionInvitacionesAdmin: React.FC<GestionInvitacionesAdminProps> =
   isOpen,
   onClose,
   idConsorcio,
-  nombreConsorcio = 'Consorcio Las Heras',
+  nombreConsorcio = 'Consorcio',
 }) => {
   const [copied, setCopied] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isLoadingUnidades, setIsLoadingUnidades] = useState<boolean>(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [unidades, setUnidades] = useState<UnidadEstadoItem[]>([]);
 
-  // Lista simulada de unidades del edificio con sus badges de estado
-  const [unidades, setUnidades] = useState<UnidadEstadoItem[]>([
-    { idUnidadHabitacional: 1, identificador: 'Depto 1º A', pisoTorre: 'Piso 1', estado: 'REGISTRADO', nombreResidente: 'Juan Pérez', emailResidente: 'juan.perez@ejemplo.com', tipoRelacion: 'PROPIETARIO' },
-    { idUnidadHabitacional: 2, identificador: 'Depto 1º B', pisoTorre: 'Piso 1', estado: 'INVITADO', emailResidente: 'residente1b@ejemplo.com' },
-    { idUnidadHabitacional: 3, identificador: 'Depto 2º A', pisoTorre: 'Piso 2', estado: 'SIN_INVITAR' },
-    { idUnidadHabitacional: 4, identificador: 'Depto 2º B', pisoTorre: 'Piso 2', estado: 'REGISTRADO', nombreResidente: 'Mariana López', emailResidente: 'mariana.lopez@ejemplo.com', tipoRelacion: 'INQUILINO' },
-    { idUnidadHabitacional: 5, identificador: 'Depto 3º A', pisoTorre: 'Piso 3', estado: 'SIN_INVITAR' },
-    { idUnidadHabitacional: 6, identificador: 'Depto 3º B', pisoTorre: 'Piso 3', estado: 'INVITADO', emailResidente: 'residente3b@ejemplo.com' },
-    { idUnidadHabitacional: 7, identificador: 'Depto 4º A', pisoTorre: 'Piso 4', estado: 'SIN_INVITAR' },
-    { idUnidadHabitacional: 8, identificador: 'Depto 4º B', pisoTorre: 'Piso 4', estado: 'REGISTRADO', nombreResidente: 'Carlos Gómez', emailResidente: 'carlos.gomez@ejemplo.com', tipoRelacion: 'PROPIETARIO' },
-  ]);
+  const cargarUnidades = useCallback(async () => {
+    setIsLoadingUnidades(true);
+    try {
+      const res = await unidadService.findQP(1, 100, '');
+      if (res.success && res.data?.items) {
+        const mapped: UnidadEstadoItem[] = res.data.items.map((u) => ({
+          idUnidadHabitacional: u.idUnidadHabitacional,
+          identificador: u.identificador,
+          pisoTorre: u.complejo?.nombre || `Unidad #${u.idUnidadHabitacional}`,
+          estado: 'SIN_INVITAR',
+        }));
+        setUnidades(mapped);
+      }
+    } catch {
+      // Manejo silencioso o estado vacío
+    } finally {
+      setIsLoadingUnidades(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      cargarUnidades();
+    }
+  }, [isOpen, cargarUnidades]);
 
   if (!isOpen) return null;
 
@@ -91,6 +109,8 @@ export const GestionInvitacionesAdmin: React.FC<GestionInvitacionesAdminProps> =
           prev.map((u) => (u.estado === 'SIN_INVITAR' ? { ...u, estado: 'INVITADO' } : u))
         );
         setFeedbackMsg(`Se enviaron ${dto.unidades?.length || 1} invitaciones masivas con éxito.`);
+      } else {
+        setFeedbackMsg(`Error: ${res.errorMessage || 'No se pudieron enviar las invitaciones.'}`);
       }
     } catch {
       setFeedbackMsg('Error al enviar las invitaciones masivas.');
@@ -127,7 +147,7 @@ export const GestionInvitacionesAdmin: React.FC<GestionInvitacionesAdminProps> =
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -162,7 +182,7 @@ export const GestionInvitacionesAdmin: React.FC<GestionInvitacionesAdminProps> =
               />
               <button
                 onClick={handleCopyLink}
-                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 flex-shrink-0"
+                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 flex-shrink-0 cursor-pointer"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 <span>{copied ? 'Copiado' : 'Copiar'}</span>
@@ -211,62 +231,82 @@ export const GestionInvitacionesAdmin: React.FC<GestionInvitacionesAdminProps> =
 
             <button
               onClick={handleEnviarMasivas}
-              disabled={isSubmitting || sinInvitarCount === 0}
-              className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20 disabled:opacity-40 flex items-center justify-center gap-2"
+              disabled={isSubmitting || sinInvitarCount === 0 || isLoadingUnidades}
+              className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-500/20 disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Enviar Invitaciones Masivas ({sinInvitarCount})</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Enviar Invitaciones Masivas ({sinInvitarCount})</span>
+                </>
+              )}
             </button>
           </div>
 
           {/* Grilla / Mapa de Unidades */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {unidadesFiltradas.map((u) => (
-              <div
-                key={u.idUnidadHabitacional}
-                className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5 flex items-center justify-between gap-3 hover:border-slate-700 transition"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">{u.identificador}</span>
-                    <span className="text-[10px] text-slate-500">({u.pisoTorre})</span>
+          {isLoadingUnidades ? (
+            <div className="py-12 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+              <span>Cargando unidades del edificio...</span>
+            </div>
+          ) : unidadesFiltradas.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl bg-slate-950/40 border border-slate-800/80 text-xs text-slate-400">
+              No se encontraron unidades registradas para este consorcio.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {unidadesFiltradas.map((u) => (
+                <div
+                  key={u.idUnidadHabitacional}
+                  className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5 flex items-center justify-between gap-3 hover:border-slate-700 transition"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">{u.identificador}</span>
+                      <span className="text-[10px] text-slate-500">({u.pisoTorre})</span>
+                    </div>
+
+                    {u.nombreResidente ? (
+                      <div className="text-xs text-slate-300 font-medium mt-0.5">
+                        {u.nombreResidente} <span className="text-[10px] text-blue-400">({u.tipoRelacion})</span>
+                      </div>
+                    ) : u.emailResidente ? (
+                      <div className="text-xs text-slate-400 mt-0.5">{u.emailResidente}</div>
+                    ) : (
+                      <div className="text-xs text-slate-500 italic mt-0.5">Sin email asignado</div>
+                    )}
                   </div>
 
-                  {u.nombreResidente ? (
-                    <div className="text-xs text-slate-300 font-medium mt-0.5">
-                      {u.nombreResidente} <span className="text-[10px] text-blue-400">({u.tipoRelacion})</span>
-                    </div>
-                  ) : u.emailResidente ? (
-                    <div className="text-xs text-slate-400 mt-0.5">{u.emailResidente}</div>
-                  ) : (
-                    <div className="text-xs text-slate-500 italic mt-0.5">Sin email asignado</div>
+                  {/* Badge de Estado */}
+                  {u.estado === 'REGISTRADO' && (
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Activo</span>
+                    </span>
+                  )}
+
+                  {u.estado === 'INVITADO' && (
+                    <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>Enviado</span>
+                    </span>
+                  )}
+
+                  {u.estado === 'SIN_INVITAR' && (
+                    <span className="px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>Pendiente</span>
+                    </span>
                   )}
                 </div>
-
-                {/* Badge de Estado */}
-                {u.estado === 'REGISTRADO' && (
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>Activo</span>
-                  </span>
-                )}
-
-                {u.estado === 'INVITADO' && (
-                  <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>Enviado</span>
-                  </span>
-                )}
-
-                {u.estado === 'SIN_INVITAR' && (
-                  <span className="px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>Pendiente</span>
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -33,16 +33,20 @@ export const AprobacionVinculacionesModal: React.FC<AprobacionVinculacionesModal
   const [pendientes, setPendientes] = useState<UsuarioUnidadPendienteDto[]>([]);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const fetchPendientes = async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const res = await usuarioUnidadService.obtenerPendientes();
       if (res.success && res.data) {
         setPendientes(res.data);
+      } else {
+        setErrorMsg(res.errorMessage || 'No se pudieron cargar las solicitudes pendientes.');
       }
     } catch {
-      // Error manejado
+      setErrorMsg('Error de conexión al cargar las solicitudes pendientes.');
     } finally {
       setLoading(false);
     }
@@ -119,6 +123,13 @@ export const AprobacionVinculacionesModal: React.FC<AprobacionVinculacionesModal
             <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
               <span>{feedbackMsg}</span>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMsg}</span>
             </div>
           )}
 

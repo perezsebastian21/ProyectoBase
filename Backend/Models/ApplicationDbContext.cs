@@ -28,6 +28,7 @@ namespace ProyectoBase.Models
         public DbSet<NotificacionIntento> NotificacionesIntentos { get; set; }
         public DbSet<Rol> Roles { get; set; }
         public DbSet<UsuarioRol> UsuariosRoles { get; set; }
+        public DbSet<InvitacionUsuario> InvitacionesUsuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -317,8 +318,25 @@ namespace ProyectoBase.Models
                 entity.HasKey(x => x.IDUsuarioUnidad);
                 entity.Property(x => x.TipoRelacion).IsRequired().HasMaxLength(20);
                 entity.Property(x => x.EsOcupanteActual).HasDefaultValue(true);
+                entity.Property(x => x.EstadoRelacion).IsRequired().HasMaxLength(30).HasDefaultValue("VIGENTE");
+                entity.Property(x => x.MotivoRechazo).HasMaxLength(250);
                 entity.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.IDUsuario).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.UnidadHabitacional).WithMany().HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<InvitacionUsuario>(entity =>
+            {
+                entity.ToTable("PB_InvitacionUsuario");
+                entity.HasKey(x => x.IDInvitacion);
+                entity.Property(x => x.EmailDestino).IsRequired().HasMaxLength(250);
+                entity.Property(x => x.Token).IsRequired().HasMaxLength(100);
+                entity.HasIndex(x => x.Token).IsUnique();
+                entity.Property(x => x.RolDestino).IsRequired().HasMaxLength(30);
+                entity.Property(x => x.Estado).IsRequired().HasMaxLength(20).HasDefaultValue("PENDIENTE");
+                entity.HasOne(x => x.Consorcio).WithMany().HasForeignKey(x => x.IDConsorcio).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Complejo).WithMany().HasForeignKey(x => x.IDComplejo).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.UnidadHabitacional).WithMany().HasForeignKey(x => x.IDUnidadHabitacional).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.UsuarioCreador).WithMany().HasForeignKey(x => x.IDUsuarioCreador).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PoliticaCancelacionTramo>(entity =>

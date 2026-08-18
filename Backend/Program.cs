@@ -33,10 +33,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 // 6. Registrar UsuarioService
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
-// 7. Registrar Servicios de Etapa 3
+// 7. Registrar Servicios de Etapa 3 y Onboarding
 builder.Services.AddScoped<ProyectoBase.Services.DisponibilidadService>();
 builder.Services.AddScoped<ProyectoBase.Services.CancelacionMasivaService>();
 builder.Services.AddScoped<ProyectoBase.Services.ReservaService>();
+builder.Services.AddScoped<ProyectoBase.Services.InvitacionService.IInvitacionService, ProyectoBase.Services.InvitacionService.InvitacionService>();
+builder.Services.AddScoped<ProyectoBase.Services.UsuarioUnidadService.IUsuarioUnidadService, ProyectoBase.Services.UsuarioUnidadService.UsuarioUnidadService>();
 
 // 8. Configurar Autenticación JWT Bearer
 string jwtSecretKey = builder.Configuration["Jwt:Admin:Key"] ?? builder.Configuration["Jwt:SecretKey"] ?? "ClaveSecretaSuperSeguraYMuyLarga12345!";

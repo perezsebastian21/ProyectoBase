@@ -7,6 +7,8 @@ import DashboardActionCard from '@/components/ui/DashboardActionCard';
 import AmenityCard from '@/components/ui/AmenityCard';
 import IncidentCard from '@/components/ui/IncidentCard';
 import StatusBadge from '@/components/ui/StatusBadge';
+import { AltaAdministradorModal } from '@/features/usuarios/components/AltaAdministradorModal';
+import { OnboardingWizardModal } from '@/features/consorcios/components/OnboardingWizardModal';
 import { consorcioService } from '@/features/consorcios/services/consorcioService';
 import { amenityService } from '@/features/amenities/services/amenityService';
 import type { Amenity } from '@/features/amenities/types';
@@ -55,6 +57,10 @@ export default function Home() {
   const [activeRole, setActiveRole] = useState<UserRole>('SUPER_ADMINISTRADOR');
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
   const [isLoadingAmenities, setIsLoadingAmenities] = useState(false);
+
+  // Modales de Onboarding en Home
+  const [isAltaAdminModalOpen, setIsAltaAdminModalOpen] = useState(false);
+  const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
 
   // Context global de perfil activo
   const { consorcioActivo, complejoActivo, setConsorcioActivo, setComplejoActivo } = useConsorcioActivo();
@@ -135,15 +141,16 @@ export default function Home() {
 
           if (consorciosRes.data.length > 0) {
             // Si ya hay un consorcio activo guardado en el context (localStorage),
-            // usarlo para inicializar el select. Si no, usar el primero como default.
+            // usarlo para inicializar el select si existe en la lista. Si no, el primero.
             const savedConsorcio = consorcioActivo
               ? consorciosRes.data.find((c: any) => c.idConsorcio === consorcioActivo.id)
               : null;
             const toSelect = savedConsorcio ?? consorciosRes.data[0];
             setSelectedConsorcioId(toSelect.idConsorcio.toString());
-            if (!consorcioActivo) {
-              setConsorcioActivo({ id: toSelect.idConsorcio, nombre: toSelect.nombre });
-            }
+            setConsorcioActivo({ id: toSelect.idConsorcio, nombre: toSelect.nombre });
+          } else {
+            setSelectedConsorcioId('');
+            setConsorcioActivo(null);
           }
         }
 
@@ -152,15 +159,15 @@ export default function Home() {
           setComplejosList(complejosRes.data);
 
           if (complejosRes.data.length > 0) {
-            // Mismo criterio: respetar el complejo guardado si existe
             const savedComplejo = complejoActivo
               ? complejosRes.data.find((c: any) => c.idComplejo === complejoActivo.id)
               : null;
             const toSelect = savedComplejo ?? complejosRes.data[0];
             setSelectedComplejoId(toSelect.idComplejo.toString());
-            if (!complejoActivo) {
-              setComplejoActivo({ id: toSelect.idComplejo, nombre: toSelect.nombre });
-            }
+            setComplejoActivo({ id: toSelect.idComplejo, nombre: toSelect.nombre });
+          } else {
+            setSelectedComplejoId('');
+            setComplejoActivo(null);
           }
         }
       } catch (error) {
@@ -237,6 +244,22 @@ export default function Home() {
             <p className="text-slate-600 dark:text-slate-300 text-sm max-w-md leading-relaxed">
               Gestión total del sistema, consorcios, complejos, unidades habitacionales y auditoría unificada.
             </p>
+
+            <div className="flex flex-wrap gap-2.5 pt-2">
+              <button
+                onClick={() => setIsAltaAdminModalOpen(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-purple-500/20 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>+ Alta Administrador</span>
+              </button>
+
+              <button
+                onClick={() => setIsWizardModalOpen(true)}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-blue-500/20 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>+ Onboarding Consorcio</span>
+              </button>
+            </div>
           </div>
 
           {/* Ilustración */}
@@ -304,11 +327,25 @@ export default function Home() {
           />
 
           <DashboardActionCard
-            category="Personas"
-            title="Usuarios y Personas"
+            category="Seguridad"
+            title="Usuarios & Roles"
             badgeLabel="Activo"
             badgeStatus="success"
-            description="Gestiona los perfiles de los usuarios y personas, incluyendo Inquilinos e Invitados."
+            description="Administración de cuentas de acceso, credenciales y asignación de roles del sistema."
+            icon={
+              <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            }
+            onClick={() => router.push(ROUTES.USUARIOS)}
+          />
+
+          <DashboardActionCard
+            category="Personas"
+            title="Padrón de Personas"
+            badgeLabel="Activo"
+            badgeStatus="success"
+            description="Gestiona los perfiles de personas físicas, datos de contacto, DNI e historial."
             icon={
               <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -391,6 +428,7 @@ export default function Home() {
       consorciosCount={consorciosCount}
       complejosCount={complejosCount}
       handleSwitchRole={handleSwitchRole}
+      onOpenWizard={() => setIsWizardModalOpen(true)}
     />
   );
 
@@ -640,6 +678,20 @@ export default function Home() {
   return (
     <div className="max-w-4xl w-full mx-auto px-6 py-8">
       {renderContent()}
+
+      {/* Modales de Onboarding Globale */}
+      <AltaAdministradorModal
+        isOpen={isAltaAdminModalOpen}
+        onClose={() => setIsAltaAdminModalOpen(false)}
+      />
+
+      <OnboardingWizardModal
+        isOpen={isWizardModalOpen}
+        onClose={() => setIsWizardModalOpen(false)}
+        onSuccess={() => {
+          setIsWizardModalOpen(false);
+        }}
+      />
     </div>
   );
 }

@@ -1,0 +1,78 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ProyectoBase.DTOs.UsuarioUnidad;
+using ProyectoBase.Models;
+using ProyectoBase.Services.UsuarioUnidadService;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace ProyectoBase.Controllers
+{
+    [ApiController]
+    [Route("api/usuario-unidad")]
+    public class UsuarioUnidadController : ControllerBase
+    {
+        private readonly IUsuarioUnidadService _usuarioUnidadService;
+
+        public UsuarioUnidadController(IUsuarioUnidadService usuarioUnidadService)
+        {
+            _usuarioUnidadService = usuarioUnidadService;
+        }
+
+        /// <summary>
+        /// Obtiene las solicitudes de vinculación pendientes de aprobación por el Administrador.
+        /// </summary>
+        [HttpGet("pendientes")]
+        [Authorize(Roles = "ADMINISTRADOR_AVANZADO,SUPER_ADMINISTRADOR")]
+        public async Task<IActionResult> GetPendientes([FromQuery] int? idConsorcio)
+        {
+            var pendientes = await _usuarioUnidadService.ObtenerPendientesAsync(idConsorcio);
+            return Ok(new ServiceResponse<object>(pendientes));
+        }
+
+        /// <summary>
+        /// Aprueba la vinculación de un propietario a una unidad habitacional.
+        /// </summary>
+        [HttpPost("{id}/aprobar")]
+        [Authorize(Roles = "ADMINISTRADOR_AVANZADO,SUPER_ADMINISTRADOR")]
+        public async Task<IActionResult> Aprobar(int id)
+        {
+            try
+            {
+                var uu = await _usuarioUnidadService.AprobarUsuarioUnidadAsync(id);
+                return Ok(new ServiceResponse<object>(uu));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ServiceResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ServiceResponse<object>(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Rechaza la solicitud de vinculación de un propietario.
+        /// </summary>
+        [HttpPost("{id}/rechazar")]
+        [Authorize(Roles = "ADMINISTRADOR_AVANZADO,SUPER_ADMINISTRADOR")]
+        public async Task<IActionResult> Rechazar(int id, [FromBody] RechazarUsuarioUnidadDto dto)
+        {
+            try
+            {
+                var uu = await _usuarioUnidadService.RechazarUsuarioUnidadAsync(id, dto?.MotivoRechazo);
+                return Ok(new ServiceResponse<object>(uu));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new ServiceResponse<object>(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ServiceResponse<object>(ex.Message));
+            }
+        }
+    }
+}

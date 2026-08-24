@@ -200,6 +200,11 @@ namespace ProyectoBase.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<bool>("TieneGuardiaDedicado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.HasKey("IDConsorcio");
 
                     b.HasIndex("Cuit")
@@ -303,6 +308,77 @@ namespace ProyectoBase.Migrations
                     b.ToTable("PB_Inquilino", (string)null);
                 });
 
+            modelBuilder.Entity("ProyectoBase.Models.InvitacionUsuario", b =>
+                {
+                    b.Property<int>("IDInvitacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IDInvitacion"));
+
+                    b.Property<string>("EmailDestino")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("PENDIENTE");
+
+                    b.Property<DateTime?>("FechaAceptacion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("FechaExpiracion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int?>("IDComplejo")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IDConsorcio")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IDUnidadHabitacional")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IDUsuarioCreador")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RolDestino")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TelefonoDestino")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("IDInvitacion");
+
+                    b.HasIndex("IDComplejo");
+
+                    b.HasIndex("IDConsorcio");
+
+                    b.HasIndex("IDUnidadHabitacional");
+
+                    b.HasIndex("IDUsuarioCreador");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("PB_InvitacionUsuario", (string)null);
+                });
+
             modelBuilder.Entity("ProyectoBase.Models.Invitado", b =>
                 {
                     b.Property<int>("IDInvitado")
@@ -357,6 +433,12 @@ namespace ProyectoBase.Migrations
                     b.Property<DateTime>("FechaInscripcion")
                         .HasColumnType("timestamptz");
 
+                    b.Property<DateTime?>("FechaNotificacion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("FechaResolucion")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<DateOnly>("FechaUso")
                         .HasColumnType("date");
 
@@ -369,6 +451,13 @@ namespace ProyectoBase.Migrations
                     b.Property<int>("IDUnidadHabitacional")
                         .HasColumnType("integer");
 
+                    b.Property<int>("IDUsuario")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MotivoExpiracion")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<int>("Posicion")
                         .HasColumnType("integer");
 
@@ -377,6 +466,8 @@ namespace ProyectoBase.Migrations
                     b.HasIndex("IDAmenity");
 
                     b.HasIndex("IDUnidadHabitacional");
+
+                    b.HasIndex("IDUsuario");
 
                     b.ToTable("PB_ListaEspera", (string)null);
                 });
@@ -419,6 +510,36 @@ namespace ProyectoBase.Migrations
                     b.HasIndex("IDAmenity");
 
                     b.ToTable("PB_MantenimientoProgramado", (string)null);
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.NotificacionIntento", b =>
+                {
+                    b.Property<int>("IDIntento")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IDIntento"));
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("Entregado")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("EntregadoEn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("EnviadoEn")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("IDNotificacion")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IDIntento");
+
+                    b.ToTable("PB_NotificacionIntento", (string)null);
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.Persona", b =>
@@ -466,6 +587,33 @@ namespace ProyectoBase.Migrations
                     b.ToTable("PB_Persona", (string)null);
                 });
 
+            modelBuilder.Entity("ProyectoBase.Models.PoliticaCancelacionTramo", b =>
+                {
+                    b.Property<int>("IDTramo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IDTramo"));
+
+                    b.Property<int>("HorasAntesDesde")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HorasAntesHasta")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IDAmenityConfig")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PorcentajePenalidad")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("IDTramo");
+
+                    b.HasIndex("IDAmenityConfig");
+
+                    b.ToTable("PB_PoliticaCancelacionTramo", (string)null);
+                });
+
             modelBuilder.Entity("ProyectoBase.Models.Reserva", b =>
                 {
                     b.Property<int>("IDReserva")
@@ -478,6 +626,14 @@ namespace ProyectoBase.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("CheckInFecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("CheckInRealizado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -502,6 +658,11 @@ namespace ProyectoBase.Migrations
                     b.Property<int>("IDUnidadHabitacional")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("MontoRetenido")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0.00m);
+
                     b.HasKey("IDReserva");
 
                     b.HasIndex("IDAmenity");
@@ -509,6 +670,87 @@ namespace ProyectoBase.Migrations
                     b.HasIndex("IDUnidadHabitacional");
 
                     b.ToTable("PB_Reserva", (string)null);
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.Rol", b =>
+                {
+                    b.Property<int>("IDRol")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IDRol"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("IDRol");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("PB_Rol", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IDRol = 1,
+                            Codigo = "SUPER_ADMINISTRADOR",
+                            Descripcion = "Acceso total cross-tenant",
+                            Nombre = "Super Administrador"
+                        },
+                        new
+                        {
+                            IDRol = 2,
+                            Codigo = "ADMINISTRADOR_AVANZADO",
+                            Descripcion = "Gestión completa del consorcio",
+                            Nombre = "Administrador Avanzado"
+                        },
+                        new
+                        {
+                            IDRol = 3,
+                            Codigo = "ADMINISTRADOR_LIVIANO",
+                            Descripcion = "Operativo día a día sin guardia",
+                            Nombre = "Administrador Liviano"
+                        },
+                        new
+                        {
+                            IDRol = 4,
+                            Codigo = "GUARDIA",
+                            Descripcion = "Control de accesos y portería",
+                            Nombre = "Guardia / Seguridad"
+                        },
+                        new
+                        {
+                            IDRol = 5,
+                            Codigo = "PROPIETARIO",
+                            Descripcion = "Dueño de unidad con supervisión",
+                            Nombre = "Propietario"
+                        },
+                        new
+                        {
+                            IDRol = 6,
+                            Codigo = "INQUILINO",
+                            Descripcion = "Residente operativo de unidad",
+                            Nombre = "Inquilino"
+                        },
+                        new
+                        {
+                            IDRol = 7,
+                            Codigo = "INVITADO",
+                            Descripcion = "Acceso temporal con vigencia acotada",
+                            Nombre = "Invitado"
+                        });
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.UnidadHabitacional", b =>
@@ -580,6 +822,13 @@ namespace ProyectoBase.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("INQUILINO");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -594,6 +843,74 @@ namespace ProyectoBase.Migrations
                         .IsUnique();
 
                     b.ToTable("PB_Usuario", (string)null);
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.UsuarioRol", b =>
+                {
+                    b.Property<int>("IDUsuarioRol")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IDUsuarioRol"));
+
+                    b.Property<int>("IDRol")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IDUsuario")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IDUsuarioRol");
+
+                    b.HasIndex("IDRol");
+
+                    b.HasIndex("IDUsuario", "IDRol")
+                        .IsUnique();
+
+                    b.ToTable("PB_UsuarioRol", (string)null);
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.UsuarioUnidad", b =>
+                {
+                    b.Property<int>("IDUsuarioUnidad")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IDUsuarioUnidad"));
+
+                    b.Property<bool>("EsOcupanteActual")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("EstadoRelacion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("VIGENTE");
+
+                    b.Property<int>("IDUnidadHabitacional")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IDUsuario")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MotivoRechazo")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("TipoRelacion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("IDUsuarioUnidad");
+
+                    b.HasIndex("IDUnidadHabitacional");
+
+                    b.HasIndex("IDUsuario");
+
+                    b.ToTable("PB_UsuarioUnidad", (string)null);
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.Amenity", b =>
@@ -659,6 +976,37 @@ namespace ProyectoBase.Migrations
                     b.Navigation("UnidadHabitacional");
                 });
 
+            modelBuilder.Entity("ProyectoBase.Models.InvitacionUsuario", b =>
+                {
+                    b.HasOne("ProyectoBase.Models.Complejo", "Complejo")
+                        .WithMany()
+                        .HasForeignKey("IDComplejo")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ProyectoBase.Models.Consorcio", "Consorcio")
+                        .WithMany()
+                        .HasForeignKey("IDConsorcio")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ProyectoBase.Models.UnidadHabitacional", "UnidadHabitacional")
+                        .WithMany()
+                        .HasForeignKey("IDUnidadHabitacional")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ProyectoBase.Models.Usuario", "UsuarioCreador")
+                        .WithMany()
+                        .HasForeignKey("IDUsuarioCreador")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Complejo");
+
+                    b.Navigation("Consorcio");
+
+                    b.Navigation("UnidadHabitacional");
+
+                    b.Navigation("UsuarioCreador");
+                });
+
             modelBuilder.Entity("ProyectoBase.Models.Invitado", b =>
                 {
                     b.HasOne("ProyectoBase.Models.UnidadHabitacional", "UnidadHabitacional")
@@ -684,9 +1032,17 @@ namespace ProyectoBase.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ProyectoBase.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("IDUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Amenity");
 
                     b.Navigation("UnidadHabitacional");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.MantenimientoProgramado", b =>
@@ -698,6 +1054,16 @@ namespace ProyectoBase.Migrations
                         .IsRequired();
 
                     b.Navigation("Amenity");
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.PoliticaCancelacionTramo", b =>
+                {
+                    b.HasOne("ProyectoBase.Models.AmenityConfig", "AmenityConfig")
+                        .WithMany()
+                        .HasForeignKey("IDAmenityConfig")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("AmenityConfig");
                 });
 
             modelBuilder.Entity("ProyectoBase.Models.Reserva", b =>
@@ -730,9 +1096,52 @@ namespace ProyectoBase.Migrations
                     b.Navigation("Complejo");
                 });
 
+            modelBuilder.Entity("ProyectoBase.Models.UsuarioRol", b =>
+                {
+                    b.HasOne("ProyectoBase.Models.Rol", "Rol")
+                        .WithMany()
+                        .HasForeignKey("IDRol")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProyectoBase.Models.Usuario", "Usuario")
+                        .WithMany("UsuarioRoles")
+                        .HasForeignKey("IDUsuario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rol");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.UsuarioUnidad", b =>
+                {
+                    b.HasOne("ProyectoBase.Models.UnidadHabitacional", "UnidadHabitacional")
+                        .WithMany()
+                        .HasForeignKey("IDUnidadHabitacional")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProyectoBase.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("IDUsuario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UnidadHabitacional");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("ProyectoBase.Models.Amenity", b =>
                 {
                     b.Navigation("Config");
+                });
+
+            modelBuilder.Entity("ProyectoBase.Models.Usuario", b =>
+                {
+                    b.Navigation("UsuarioRoles");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const [activeTab, setActiveTab] = useState<NavItem | string>('inicio');
 
-  // Determinar la pestaña activa basándose en la ruta y los parámetros
+  // Determinar la pestaña activa basándose en la ruta
   useEffect(() => {
     if (pathname === '/') {
       const tabParam = searchParams.get('tab');
@@ -22,6 +22,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       } else {
         setActiveTab('inicio');
       }
+    } else if (pathname.startsWith('/dashboard/disponibilidad')) {
+      setActiveTab('disponibilidad');
+    } else if (pathname.startsWith('/dashboard/acceso')) {
+      setActiveTab('acceso');
+    } else if (pathname.startsWith('/dashboard/mis-unidades')) {
+      setActiveTab('mis-unidades');
+    } else if (pathname.startsWith('/dashboard/audit-logs')) {
+      setActiveTab('auditoria');
     } else if (pathname.startsWith('/dashboard/consorcios')) {
       setActiveTab('consorcios');
     } else if (pathname.startsWith('/dashboard/complejos')) {
@@ -53,6 +61,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'inicio':
         router.push('/');
         break;
+      case 'disponibilidad':
+        router.push(ROUTES.DISPONIBILIDAD);
+        break;
+      case 'acceso':
+        router.push(ROUTES.ACCESO);
+        break;
+      case 'mis-unidades':
+        router.push(ROUTES.MIS_UNIDADES);
+        break;
       case 'consorcios':
         router.push(ROUTES.CONSORCIOS);
         break;
@@ -64,6 +81,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         break;
       case 'incidencias':
         router.push(ROUTES.INCIDENCIAS_ADMIN);
+        break;
+      case 'auditoria':
+        router.push(ROUTES.AUDIT_LOGS);
         break;
       case 'amenities':
         router.push(ROUTES.AMENITIES_ADMIN);

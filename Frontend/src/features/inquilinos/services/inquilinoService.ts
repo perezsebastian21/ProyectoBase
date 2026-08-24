@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/constants';
-import type { ApiResponse } from '@/types';
+import type { ServiceResponse } from '@/types';
 import type {
   Inquilino,
   CreateInquilinoPayload,
@@ -8,15 +8,22 @@ import type {
 } from '../types';
 
 export const inquilinoService = {
-  async getAll(): Promise<ApiResponse<Inquilino[]>> {
-    return apiClient<ApiResponse<Inquilino[]>>(API_ENDPOINTS.INQUILINO.GET_ALL, {
+  async getAll(): Promise<ServiceResponse<Inquilino[]>> {
+    return apiClient<ServiceResponse<Inquilino[]>>(API_ENDPOINTS.INQUILINO.GET_ALL, {
       method: 'GET',
     });
   },
 
-  async getById(id: number): Promise<ApiResponse<Inquilino>> {
-    return apiClient<ApiResponse<Inquilino>>(API_ENDPOINTS.INQUILINO.GET_BY_ID(id), {
+  async getById(id: number): Promise<ServiceResponse<Inquilino>> {
+    return apiClient<ServiceResponse<Inquilino>>(API_ENDPOINTS.INQUILINO.GET_BY_ID(id), {
       method: 'GET',
+    });
+  },
+
+  async darDeBaja(idInquilino: number): Promise<ServiceResponse<any>> {
+    return apiClient<ServiceResponse<any>>('/Inquilino/DarDeBaja', {
+      method: 'POST',
+      body: JSON.stringify({ idInquilino }),
     });
   },
 
@@ -24,7 +31,7 @@ export const inquilinoService = {
     page: number,
     limit: number,
     search: string = ''
-  ): Promise<ApiResponse<{ items: Inquilino[]; totalCount: number }>> {
+  ): Promise<{ success: boolean; errorMessage: string | null; data: { items: Inquilino[]; totalCount: number } }> {
     const queryParams = new URLSearchParams({
       Page: page.toString(),
       Limit: limit.toString(),
@@ -69,22 +76,22 @@ export const inquilinoService = {
     };
   },
 
-  async create(payload: CreateInquilinoPayload): Promise<ApiResponse<Inquilino>> {
-    return apiClient<ApiResponse<Inquilino>>(API_ENDPOINTS.INQUILINO.CREATE, {
+  async create(payload: CreateInquilinoPayload): Promise<ServiceResponse<Inquilino>> {
+    return apiClient<ServiceResponse<Inquilino>>(API_ENDPOINTS.INQUILINO.CREATE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
-  async update(payload: UpdateInquilinoPayload): Promise<ApiResponse<Inquilino>> {
-    return apiClient<ApiResponse<Inquilino>>(API_ENDPOINTS.INQUILINO.UPDATE, {
+  async update(payload: UpdateInquilinoPayload): Promise<ServiceResponse<Inquilino>> {
+    return apiClient<ServiceResponse<Inquilino>>(API_ENDPOINTS.INQUILINO.UPDATE, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
   },
 
-  async delete(id: number): Promise<ApiResponse<boolean>> {
-    return apiClient<ApiResponse<boolean>>(API_ENDPOINTS.INQUILINO.DELETE(id), {
+  async delete(id: number): Promise<ServiceResponse<boolean>> {
+    return apiClient<ServiceResponse<boolean>>(API_ENDPOINTS.INQUILINO.DELETE(id), {
       method: 'DELETE',
     });
   },

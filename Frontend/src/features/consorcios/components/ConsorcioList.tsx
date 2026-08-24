@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useConsorcios } from '../hooks/useConsorcios';
 import ConsorcioFormModal from './ConsorcioFormModal';
@@ -9,12 +9,18 @@ import { CreateButton } from '@/components/ui';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Modal } from '@/components/ui/Modal';
 import type { Consorcio } from '../types';
-import { Search, Building2, MapPin, Mail, Phone } from 'lucide-react';
+import { Search, Building2, MapPin, Mail, Phone, Sparkles } from 'lucide-react';
+import { roleService } from '@/lib/role-service';
+import { useConsorcioActivo } from '@/components/providers';
+import { OnboardingWizardModal } from './OnboardingWizardModal';
 
 export default function ConsorcioList() {
   const router = useRouter();
-  const {
+  const { consorcioActivo } = useConsorcioActivo();
+  const [isOnboardingOpen, setIsOnboardingOpen] = React.useState<boolean>(false);
 
+
+  const {
     items,
     totalCount,
     isLoading,
@@ -40,6 +46,15 @@ export default function ConsorcioList() {
     updateConsorcio,
     deleteConsorcio,
   } = useConsorcios();
+
+  // Si el rol activo es Administrador Avanzado, redirigir automáticamente al perfil de su Consorcio Activo
+  useEffect(() => {
+    const role = roleService.getActiveRole();
+    if (role === 'ADMINISTRADOR_AVANZADO') {
+      const targetId = consorcioActivo?.id || (items.length > 0 ? items[0].idConsorcio : 1);
+      router.replace(`/dashboard/consorcios/${targetId}`);
+    }
+  }, [consorcioActivo, items, router]);
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
@@ -130,7 +145,15 @@ export default function ConsorcioList() {
           </p>
         </div>
         
-        <CreateButton label="Nuevo Consorcio" onClick={handleOpenCreate} />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsOnboardingOpen(true)}
+            className="px-4 py-2 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-purple-500/20 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" /> Onboarding Consorcio (CU-08)
+          </button>
+          <CreateButton label="Nuevo Consorcio" onClick={handleOpenCreate} />
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -228,6 +251,11 @@ export default function ConsorcioList() {
           </div>
         </div>
       </Modal>
+
+      <OnboardingWizardModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+      />
     </div>
   );
 }

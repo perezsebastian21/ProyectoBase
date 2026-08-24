@@ -12,6 +12,7 @@ import ConsorcioComunicadoModal, { ComunicadoFormValues } from './ConsorcioComun
 import ComplejoFormModal from '@/features/complejos/components/ComplejoFormModal';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { ROUTES } from '@/constants';
+import { roleService } from '@/lib/role-service';
 import type { Consorcio } from '../types';
 import {
   ArrowLeft,
@@ -73,55 +74,11 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [reportExportedMessage, setReportExportedMessage] = useState<string | null>(null);
 
-  // Lista local simulada de personal para CU-CONS-04
-  const [personalList, setPersonalList] = useState<PersonalMember[]>([
-    {
-      id: 'p-1',
-      nombre: 'Carlos Rodríguez',
-      email: 'crodriguez@edificio.com',
-      rol: 'admin',
-      cargo: 'Administrador de Torre',
-      estado: 'active',
-    },
-    {
-      id: 'p-2',
-      nombre: 'Guardia Principal',
-      email: 'seguridad@edificio.com',
-      rol: 'security',
-      cargo: 'Personal de Vigilancia 24hs',
-      estado: 'active',
-    },
-    {
-      id: 'p-3',
-      nombre: 'Mantenimiento General',
-      email: 'mantenimiento@edificio.com',
-      rol: 'maintenance',
-      cargo: 'Servicios Técnicos Integral',
-      estado: 'active',
-    },
-  ]);
+  // Personal del consorcio — pendiente de endpoint en backend
+  const [personalList, setPersonalList] = useState<PersonalMember[]>([]);
 
-  // Lista local simulada de comunicados para CU-CONS-07
-  const [comunicadosList, setComunicadosList] = useState<ComunicadoItem[]>([
-    {
-      id: 'c-1',
-      titulo: 'Convocatoria a Asamblea Ordinaria 2026',
-      contenido: 'Estimados propietarios e inquilinos, los convocamos a la asamblea anual a realizarse en el SUM principal.',
-      tipo: 'asamblea',
-      prioridad: 'urgente',
-      fecha: '2026-07-20 18:00',
-      complejoNombre: 'Todos los Complejos',
-    },
-    {
-      id: 'c-2',
-      titulo: 'Mantenimiento Programado de Piscinas',
-      contenido: 'Se informa que el sector de piscinas permanecerá cerrado por limpieza profunda el día Lunes.',
-      tipo: 'mantenimiento',
-      prioridad: 'normal',
-      fecha: '2026-07-18 10:30',
-      complejoNombre: 'Torre Mirador Sur',
-    },
-  ]);
+  // Comunicados del consorcio — pendiente de endpoint en backend
+  const [comunicadosList, setComunicadosList] = useState<ComunicadoItem[]>([]);
 
   // Query Consorcio por ID
   const { data: consorcioData, isLoading: isLoadingConsorcio, refetch: refetchConsorcio } = useQuery({
@@ -178,42 +135,14 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
     }
   };
 
-  const handleInvitePersonal = async (data: PersonalFormValues) => {
-    setIsActionLoading(true);
-    try {
-      const complejoAsignado = complejos.find(c => c.idComplejo.toString() === data.idComplejo);
-      const newMember: PersonalMember = {
-        id: `p-${Date.now()}`,
-        nombre: data.nombre,
-        email: data.email,
-        rol: data.rol,
-        cargo: data.cargo,
-        complejoNombre: complejoAsignado ? complejoAsignado.nombre : 'Todo el Consorcio',
-        estado: 'invited',
-      };
-      setPersonalList(prev => [newMember, ...prev]);
-    } finally {
-      setIsActionLoading(false);
-    }
+  const handleInvitePersonal = async (_data: PersonalFormValues) => {
+    // TODO: implementar cuando el backend exponga el endpoint de personal del consorcio
+    setIsInvitePersonalOpen(false);
   };
 
-  const handleCreateComunicado = async (data: ComunicadoFormValues) => {
-    setIsActionLoading(true);
-    try {
-      const complejoAsignado = complejos.find(c => c.idComplejo.toString() === data.idComplejo);
-      const newComunicado: ComunicadoItem = {
-        id: `c-${Date.now()}`,
-        titulo: data.titulo,
-        contenido: data.contenido,
-        tipo: data.tipo,
-        prioridad: data.prioridad,
-        fecha: new Date().toLocaleString(),
-        complejoNombre: complejoAsignado ? complejoAsignado.nombre : 'Todos los Complejos',
-      };
-      setComunicadosList(prev => [newComunicado, ...prev]);
-    } finally {
-      setIsActionLoading(false);
-    }
+  const handleCreateComunicado = async (_data: ComunicadoFormValues) => {
+    // TODO: implementar cuando el backend exponga el endpoint de comunicados del consorcio
+    setIsComunicadoOpen(false);
   };
 
   const handleExportReport = () => {
@@ -230,16 +159,21 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
     );
   }
 
+  const activeRole = roleService.getActiveRole();
+  const isConsorcioRole = activeRole === 'ADMINISTRADOR_AVANZADO';
+  const backRoute = isConsorcioRole ? ROUTES.HOME : ROUTES.CONSORCIOS;
+  const backLabel = isConsorcioRole ? 'Volver al Panel Principal' : 'Volver al listado de Consorcios';
+
   if (!consorcio) {
     return (
       <div className="text-center py-12 space-y-4">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Consorcio no encontrado</h3>
         <button
-          onClick={() => router.push(ROUTES.CONSORCIOS)}
+          onClick={() => router.push(backRoute)}
           className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold"
         >
-          Volver a Consorcios
+          {backLabel}
         </button>
       </div>
     );
@@ -259,11 +193,11 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
       {/* Top Header */}
       <div className="flex flex-col gap-4">
         <button
-          onClick={() => router.push(ROUTES.CONSORCIOS)}
+          onClick={() => router.push(backRoute)}
           className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors w-fit cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Volver al listado de Consorcios</span>
+          <span>{backLabel}</span>
         </button>
 
         {/* Profile Card Header */}
@@ -557,6 +491,17 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
             </button>
           </div>
 
+          {personalList.length === 0 ? (
+            <div className="p-10 text-center rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 space-y-3">
+              <Users className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                No hay personal registrado para este consorcio.
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Esta funcionalidad estará disponible cuando el backend exponga el endpoint de personal del consorcio.
+              </p>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {personalList.map((member) => {
               const rolConfig = {
@@ -608,6 +553,7 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
               );
             })}
           </div>
+          )}
         </div>
       )}
 
@@ -632,84 +578,15 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
             </button>
           </div>
 
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-5 rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 shadow-sm space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Reservas del Mes</span>
-                <Calendar className="w-4 h-4 text-blue-500" />
-              </div>
-              <div className="text-2xl font-black text-slate-800 dark:text-slate-100">142</div>
-              <div className="flex items-center gap-1 text-[11px] text-emerald-500 font-bold">
-                <TrendingUp className="w-3 h-3" />
-                <span>+18% vs mes anterior</span>
-              </div>
-            </div>
-
-            <div className="p-5 rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 shadow-sm space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Tasa Ocupación Amenities</span>
-                <BarChart3 className="w-4 h-4 text-indigo-500" />
-              </div>
-              <div className="text-2xl font-black text-slate-800 dark:text-slate-100">76%</div>
-              <div className="text-[11px] text-slate-400">Picos viernes y sábados</div>
-            </div>
-
-            <div className="p-5 rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 shadow-sm space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Incidencias Resueltas</span>
-                <Wrench className="w-4 h-4 text-emerald-500" />
-              </div>
-              <div className="text-2xl font-black text-slate-800 dark:text-slate-100">92%</div>
-              <div className="text-[11px] text-slate-400">Tiempo medio: 1.4 días</div>
-            </div>
-
-            <div className="p-5 rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 shadow-sm space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Residentes Activos</span>
-                <Users className="w-4 h-4 text-purple-500" />
-              </div>
-              <div className="text-2xl font-black text-slate-800 dark:text-slate-100">284</div>
-              <div className="text-[11px] text-slate-400">De 310 unidades registradas</div>
-            </div>
-          </div>
-
-          {/* Detailed Chart Breakdown */}
-          <div className="bg-brand-surface dark:bg-slate-900/40 p-6 rounded-3xl border border-brand-surface-bright/20 dark:border-white/10 shadow-sm space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Distribución de Demanda por Amenity
-            </h4>
-            <div className="space-y-3 pt-2">
-              <div>
-                <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                  <span>SUM Principal & Quincho</span>
-                  <span>88% Ocupación</span>
-                </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full w-[88%]" />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                  <span>Piscina & Solárium</span>
-                  <span>72% Ocupación</span>
-                </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full w-[72%]" />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                  <span>Gimnasio & Fitness Center</span>
-                  <span>65% Ocupación</span>
-                </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full w-[65%]" />
-                </div>
-              </div>
-            </div>
+          {/* Métricas — pendiente de endpoint en backend */}
+          <div className="p-10 text-center rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 space-y-3">
+            <BarChart3 className="w-8 h-8 text-slate-400 mx-auto" />
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+              Métricas no disponibles aún.
+            </p>
+            <p className="text-[11px] text-slate-400">
+              Esta sección mostrará datos reales cuando el backend exponga el endpoint de métricas del consorcio.
+            </p>
           </div>
         </div>
       )}
@@ -735,6 +612,17 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
             </button>
           </div>
 
+          {comunicadosList.length === 0 ? (
+            <div className="p-10 text-center rounded-3xl bg-brand-surface dark:bg-slate-900/40 border border-brand-surface-bright/20 dark:border-white/10 space-y-3">
+              <Megaphone className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                No hay comunicados publicados para este consorcio.
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Esta funcionalidad estará disponible cuando el backend exponga el endpoint de comunicados.
+              </p>
+            </div>
+          ) : (
           <div className="space-y-3">
             {comunicadosList.map((item) => (
               <div
@@ -771,6 +659,7 @@ export default function ConsorcioDetailView({ consorcioId }: ConsorcioDetailView
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
 

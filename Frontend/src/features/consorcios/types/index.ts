@@ -49,3 +49,53 @@ export interface ConsorciosState {
   searchQuery: string;
 }
 
+export interface ConsorcioDto {
+  cuit: string;
+  nombre: string;
+  email: string;
+  telefono?: string;
+  timeZoneId?: string;
+}
+
+export interface ComplejoDto {
+  nombre: string;
+  tipo: 'EDIFICIO' | 'BARRIO_PRIVADO';
+  direccion: string;
+}
+
+export interface UnidadDto {
+  identificador: string;
+  emailResidente?: string;
+}
+
+export interface AmenityConfigDto {
+  horarioInicio: string;
+  horarioFin: string;
+  duracionBloqueMinutos: number;
+  tiempoLimpiezaMinutos: number;
+  tarifa: number;
+  limiteReservasMesUnidad: number;
+  requiereAprobacion: boolean;
+}
+
+export interface AmenityCreacionDto {
+  nombre: string;
+  capacidad: number;
+  config: AmenityConfigDto;
+}
+
+export interface OnboardingRequestDto {
+  consorcio: ConsorcioDto;
+  complejo: ComplejoDto;
+  unidades: UnidadDto[];
+  amenities?: AmenityCreacionDto[];
+}
+
+export interface OnboardingResponseDto {
+  idConsorcio: number;
+  idComplejo: number;
+  unidadesIds: number[];
+  amenitiesIds: number[];
+  status: string;
+}
+

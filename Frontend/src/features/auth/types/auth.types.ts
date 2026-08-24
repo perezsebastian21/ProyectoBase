@@ -8,12 +8,15 @@ export interface LoginRequest {
   password: string;
 }
 
+import { UserRole } from '@/types/roles';
+
 /** Respuesta del endpoint de login */
 export interface LoginResponse {
   data: {
     token: string;
     expiration: string;
     username?: string;
+    roles?: UserRole[];
   };
   success: boolean;
   errorMessage: string | null;

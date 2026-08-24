@@ -7,9 +7,12 @@ import { DataTable, Column } from '@/components/ui/DataTable';
 import { CreateButton } from '@/components/ui';
 import { Modal } from '@/components/ui/Modal';
 import type { Inquilino } from '../types';
-import { Search, UserCheck } from 'lucide-react';
+import { Search, UserCheck, UserMinus } from 'lucide-react';
+import { BajaInquilinoModal } from './BajaInquilinoModal';
 
 export default function InquilinoList() {
+  const [bajaTarget, setBajaTarget] = React.useState<Inquilino | null>(null);
+
   const {
     items,
     totalCount,
@@ -202,6 +205,16 @@ export default function InquilinoList() {
           </div>
         </div>
       </Modal>
+
+      {bajaTarget && (
+        <BajaInquilinoModal
+          isOpen={!!bajaTarget}
+          onClose={() => setBajaTarget(null)}
+          idInquilino={bajaTarget.idInquilino}
+          nombreInquilino={`${bajaTarget.nombre} ${bajaTarget.apellido}`}
+          identificadorUnidad={bajaTarget.nombreUnidad}
+        />
+      )}
     </div>
   );
 }

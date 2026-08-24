@@ -44,7 +44,7 @@ namespace ProyectoBase.Tests.Controllers
                 .Setup(s => s.ValidarCredenciales("seba", "123"))
                 .ReturnsAsync(_usuarioValido);
             _mockTokenService
-                .Setup(s => s.GenerateAdminToken("seba"))
+                .Setup(s => s.GenerateUserToken(It.IsAny<Usuario>()))
                 .Returns("jwt-token-valido");
 
             // Act
@@ -110,7 +110,7 @@ namespace ProyectoBase.Tests.Controllers
                 .Setup(s => s.ValidarCredenciales(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(_usuarioValido);
             _mockTokenService
-                .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
+                .Setup(s => s.GenerateUserToken(It.IsAny<Usuario>()))
                 .Returns(expectedToken);
 
             // Act
@@ -135,7 +135,7 @@ namespace ProyectoBase.Tests.Controllers
                 .Setup(s => s.ValidarCredenciales(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(_usuarioValido);
             _mockTokenService
-                .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
+                .Setup(s => s.GenerateUserToken(It.IsAny<Usuario>()))
                 .Returns("token");
 
             // Act
@@ -149,7 +149,7 @@ namespace ProyectoBase.Tests.Controllers
         }
 
         /// <summary>
-        /// Login exitoso → GenerateAdminToken se llama con el Username del usuario encontrado en BD.
+        /// Login exitoso → GenerateUserToken se llama con el objeto Usuario encontrado en BD.
         /// </summary>
         [Fact]
         public async Task Login_CredencialesValidas_DebeGenerarTokenConUsernameDeDB()
@@ -160,18 +160,18 @@ namespace ProyectoBase.Tests.Controllers
                 .Setup(s => s.ValidarCredenciales("seba", "123"))
                 .ReturnsAsync(_usuarioValido);
             _mockTokenService
-                .Setup(s => s.GenerateAdminToken(It.IsAny<string>()))
+                .Setup(s => s.GenerateUserToken(It.IsAny<Usuario>()))
                 .Returns("token");
 
             // Act
             await _controller.Login(request);
 
-            // Assert — el token se genera con el username que viene de la BD, no del request
-            _mockTokenService.Verify(s => s.GenerateAdminToken("seba"), Times.Once);
+            // Assert — el token se genera con el usuario que viene de la BD
+            _mockTokenService.Verify(s => s.GenerateUserToken(It.Is<Usuario>(u => u.Username == "seba")), Times.Once);
         }
 
         /// <summary>
-        /// Credenciales inválidas → GenerateAdminToken no debe ser llamado.
+        /// Credenciales inválidas → GenerateUserToken no debe ser llamado.
         /// </summary>
         [Fact]
         public async Task Login_CredencialesInvalidas_NoDebeGenerarToken()
@@ -186,7 +186,7 @@ namespace ProyectoBase.Tests.Controllers
             await _controller.Login(request);
 
             // Assert
-            _mockTokenService.Verify(s => s.GenerateAdminToken(It.IsAny<string>()), Times.Never);
+            _mockTokenService.Verify(s => s.GenerateUserToken(It.IsAny<Usuario>()), Times.Never);
         }
     }
 }

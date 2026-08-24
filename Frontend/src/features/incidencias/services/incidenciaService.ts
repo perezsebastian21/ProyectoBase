@@ -1,22 +1,34 @@
 import { apiClient } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/constants';
-import type { ApiResponse } from '@/types';
+import type { ServiceResponse, Incidencia } from '@/types';
 import type {
-  Incidencia,
   CreateIncidenciaPayload,
   UpdateIncidenciaPayload
 } from '../types';
 
+export interface ResolucionPayload {
+  idIncidencia: number;
+  detalleTrabajos: string;
+  costoEstimado: number;
+}
+
 export const incidenciaService = {
-  async getAll(): Promise<ApiResponse<Incidencia[]>> {
-    return apiClient<ApiResponse<Incidencia[]>>(API_ENDPOINTS.INCIDENCIA.GET_ALL, {
+  async getAll(): Promise<ServiceResponse<Incidencia[]>> {
+    return apiClient<ServiceResponse<Incidencia[]>>(API_ENDPOINTS.INCIDENCIA.GET_ALL, {
       method: 'GET',
     });
   },
 
-  async getById(id: number): Promise<ApiResponse<Incidencia>> {
-    return apiClient<ApiResponse<Incidencia>>(API_ENDPOINTS.INCIDENCIA.GET_BY_ID(id), {
+  async getById(id: number): Promise<ServiceResponse<Incidencia>> {
+    return apiClient<ServiceResponse<Incidencia>>(API_ENDPOINTS.INCIDENCIA.GET_BY_ID(id), {
       method: 'GET',
+    });
+  },
+
+  async resolver(payload: ResolucionPayload): Promise<ServiceResponse<Incidencia>> {
+    return apiClient<ServiceResponse<Incidencia>>('/Incidencia/Resolver', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
     });
   },
 
@@ -24,7 +36,7 @@ export const incidenciaService = {
     page: number,
     limit: number,
     search: string = ''
-  ): Promise<ApiResponse<{ items: Incidencia[]; totalCount: number }>> {
+  ): Promise<{ success: boolean; errorMessage: string | null; data: { items: Incidencia[]; totalCount: number } }> {
     const queryParams = new URLSearchParams({
       Page: page.toString(),
       Limit: limit.toString(),
@@ -69,22 +81,22 @@ export const incidenciaService = {
     };
   },
 
-  async create(payload: CreateIncidenciaPayload): Promise<ApiResponse<Incidencia>> {
-    return apiClient<ApiResponse<Incidencia>>(API_ENDPOINTS.INCIDENCIA.CREATE, {
+  async create(payload: CreateIncidenciaPayload): Promise<ServiceResponse<Incidencia>> {
+    return apiClient<ServiceResponse<Incidencia>>(API_ENDPOINTS.INCIDENCIA.CREATE, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
-  async update(payload: UpdateIncidenciaPayload): Promise<ApiResponse<Incidencia>> {
-    return apiClient<ApiResponse<Incidencia>>(API_ENDPOINTS.INCIDENCIA.UPDATE, {
+  async update(payload: UpdateIncidenciaPayload): Promise<ServiceResponse<Incidencia>> {
+    return apiClient<ServiceResponse<Incidencia>>(API_ENDPOINTS.INCIDENCIA.UPDATE, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
   },
 
-  async delete(id: number): Promise<ApiResponse<boolean>> {
-    return apiClient<ApiResponse<boolean>>(API_ENDPOINTS.INCIDENCIA.DELETE(id), {
+  async delete(id: number): Promise<ServiceResponse<boolean>> {
+    return apiClient<ServiceResponse<boolean>>(API_ENDPOINTS.INCIDENCIA.DELETE(id), {
       method: 'DELETE',
     });
   },

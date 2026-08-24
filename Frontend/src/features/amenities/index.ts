@@ -2,6 +2,7 @@ export * from './types';
 
 export * from './services/amenityService';
 export * from './services/amenityConfigService';
+export * from './services/politicaCancelacionService';
 
 export * from './hooks/useAmenities';
 export * from './hooks/useAmenityConfigs';

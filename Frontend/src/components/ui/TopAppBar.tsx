@@ -52,7 +52,7 @@ export default function TopAppBar({
   const roleConfig = activeRole ? USER_ROLES[activeRole] : null;
 
   return (
-    <header className="relative sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-4 sm:px-6 py-3.5 flex items-center justify-between transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full border-b border-brand-surface-bright/20 bg-brand-background/80 backdrop-blur-lg px-4 sm:px-6 py-3.5 flex items-center justify-between transition-all duration-300">
 
       {/* Left section: Active Role Badge + Perfil Activo */}
       <div className="flex items-center gap-2 z-10">
@@ -72,8 +72,8 @@ export default function TopAppBar({
           <div className="w-16 h-6" />
         )}
 
-        {/* Chip: Perfil de Consorcio/Edificio activo */}
-        {(consorcioActivo || complejoActivo) && (
+        {/* Chip: Perfil de Consorcio/Edificio activo — solo visible para el rol Administrador Avanzado */}
+        {activeRole === 'ADMINISTRADOR_AVANZADO' && (consorcioActivo || complejoActivo) && (
           <button
             onClick={() => router.push('/')}
             title="Clic para cambiar el edificio activo"
@@ -95,10 +95,12 @@ export default function TopAppBar({
         )}
       </div>
 
-      {/* Title — centered absolutely so it stays in the middle regardless of side elements */}
-      <h1 className="absolute left-1/2 -translate-x-1/2 text-sm sm:text-base font-bold tracking-wider text-slate-800 dark:text-slate-100 uppercase select-none pointer-events-none">
-        {title}
-      </h1>
+      {/* Title — centered in the flex row */}
+      <div className="flex-1 flex items-center justify-center pointer-events-none">
+        <h1 className="text-sm sm:text-base font-bold tracking-wider text-slate-800 dark:text-slate-100 uppercase select-none">
+          {title}
+        </h1>
+      </div>
 
       {/* Right Action (Theme Toggle + User Avatar) */}
       <div className="flex items-center gap-3 z-10">

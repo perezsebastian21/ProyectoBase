@@ -10,4 +10,5 @@
  */
 
 // Components
-// export { DashboardActionCard } from './components/DashboardActionCard';
+export { default as ConsorcioExecutiveDashboard } from './components/ConsorcioExecutiveDashboard';
+

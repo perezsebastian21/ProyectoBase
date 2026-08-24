@@ -88,4 +88,10 @@ export const reservaService = {
       method: 'DELETE',
     });
   },
+
+  async checkIn(id: number): Promise<ApiResponse<Reserva>> {
+    return apiClient<ApiResponse<Reserva>>(API_ENDPOINTS.RESERVA_ACCIONES.CHECK_IN(id), {
+      method: 'POST',
+    });
+  },
 };

@@ -13,6 +13,7 @@ namespace ProyectoBase.Tests.Controllers
     public class UsuarioControllerTests
     {
         private readonly Mock<IServiceAsync<Usuario>> _mockService;
+        private readonly Mock<ProyectoBase.Services.UsuarioService.IUsuarioService> _mockUsuarioService;
         private readonly UsuarioController _controller;
 
         private readonly Usuario _usuarioEjemplo = new Usuario
@@ -27,7 +28,8 @@ namespace ProyectoBase.Tests.Controllers
         public UsuarioControllerTests()
         {
             _mockService = new Mock<IServiceAsync<Usuario>>();
-            _controller = new UsuarioController(_mockService.Object);
+            _mockUsuarioService = new Mock<ProyectoBase.Services.UsuarioService.IUsuarioService>();
+            _controller = new UsuarioController(_mockService.Object, _mockUsuarioService.Object);
         }
 
         /// <summary>

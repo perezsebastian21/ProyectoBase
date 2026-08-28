@@ -1,45 +1,28 @@
 import { apiClient } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/constants';
-import type { ApiResponse } from '@/types';
-
-export interface UsuarioUnidad {
-  idUsuarioUnidad: number;
-  idUsuario: number;
-  idUnidadHabitacional: number;
-  tipoRelacion: 'PROPIETARIO' | 'INQUILINO';
-  esOcupanteActual: boolean;
-}
-
-export interface CreateUsuarioUnidadPayload {
-  idUsuario: number;
-  idUnidadHabitacional: number;
-  tipoRelacion: 'PROPIETARIO' | 'INQUILINO';
-  esOcupanteActual?: boolean;
-}
+import type { ServiceResponse } from '@/types';
+import type { UsuarioUnidadPendienteDto } from '@/features/invitaciones/types';
 
 export const usuarioUnidadService = {
-  async getAll(): Promise<ApiResponse<UsuarioUnidad[]>> {
-    return apiClient<ApiResponse<UsuarioUnidad[]>>(API_ENDPOINTS.USUARIO_UNIDAD.GET_ALL, {
+  /** Obtener lista de solicitudes de vinculación de propietario pendientes de aprobación (GET /api/usuario-unidad/pendientes) */
+  async obtenerPendientes(): Promise<ServiceResponse<UsuarioUnidadPendienteDto[]>> {
+    return apiClient<ServiceResponse<UsuarioUnidadPendienteDto[]>>(API_ENDPOINTS.USUARIO_UNIDAD.PENDIENTES, {
       method: 'GET',
     });
   },
 
-  async getById(id: number): Promise<ApiResponse<UsuarioUnidad>> {
-    return apiClient<ApiResponse<UsuarioUnidad>>(API_ENDPOINTS.USUARIO_UNIDAD.GET_BY_ID(id), {
-      method: 'GET',
-    });
-  },
-
-  async create(payload: CreateUsuarioUnidadPayload): Promise<ApiResponse<UsuarioUnidad>> {
-    return apiClient<ApiResponse<UsuarioUnidad>>(API_ENDPOINTS.USUARIO_UNIDAD.CREATE, {
+  /** Aprobar vinculación de propietario para otorgarle acceso pleno (POST /api/usuario-unidad/{id}/aprobar) */
+  async aprobarVinculacion(idUsuarioUnidad: number): Promise<ServiceResponse<{ mensaje: string }>> {
+    return apiClient<ServiceResponse<{ mensaje: string }>>(API_ENDPOINTS.USUARIO_UNIDAD.APROBAR(idUsuarioUnidad), {
       method: 'POST',
-      body: JSON.stringify(payload),
     });
   },
 
-  async delete(id: number): Promise<ApiResponse<boolean>> {
-    return apiClient<ApiResponse<boolean>>(API_ENDPOINTS.USUARIO_UNIDAD.DELETE(id), {
-      method: 'DELETE',
+  /** Rechazar vinculación de propietario especificando motivo (POST /api/usuario-unidad/{id}/rechazar) */
+  async rechazarVinculacion(idUsuarioUnidad: number, motivo?: string): Promise<ServiceResponse<{ mensaje: string }>> {
+    return apiClient<ServiceResponse<{ mensaje: string }>>(API_ENDPOINTS.USUARIO_UNIDAD.RECHAZAR(idUsuarioUnidad), {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
     });
   },
 };

@@ -5,11 +5,12 @@
  */
 
 export const ROUTES = {
-  // Auth
+  // Auth & Onboarding
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   SELECT_ROLE: '/select-role',
+  INVITACION: '/invitacion',
 
   // Main
   HOME: '/',
@@ -24,11 +25,15 @@ export const ROUTES = {
   SETTINGS: '/settings',
   PROFILE: '/profile',
 
-  // Administration (Consorcios / Complejos)
+  // Administration (Consorcios / Complejos / Invitaciones)
   CONSORCIOS: '/dashboard/consorcios',
   COMPLEJOS: '/dashboard/complejos',
+  GESTION_INVITACIONES: '/dashboard/invitaciones',
+  APROBACIONES_VINCULACION: '/dashboard/aprobaciones-vinculacion',
+  ADMINISTRADORES: '/dashboard/administradores',
 
   // ABMs & Módulos
+  USUARIOS: '/dashboard/usuarios',
   PERSONAS: '/dashboard/personas',
   UNIDADES: '/dashboard/unidades',
   INQUILINOS: '/dashboard/inquilinos',

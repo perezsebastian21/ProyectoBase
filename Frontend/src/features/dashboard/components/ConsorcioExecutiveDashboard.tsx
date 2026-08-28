@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DashboardActionCard from '@/components/ui/DashboardActionCard';
 import ConsorcioComunicadoModal, { ComunicadoFormValues } from '@/features/consorcios/components/ConsorcioComunicadoModal';
+import { GestionInvitacionesAdmin } from '@/features/invitaciones/components/GestionInvitacionesAdmin';
+import { AprobacionVinculacionesModal } from '@/features/usuarios/components/AprobacionVinculacionesModal';
 import { ROUTES } from '@/constants';
 import { useConsorcioActivo } from '@/components/providers';
 import { reservaService } from '@/features/reservas/services/reservaService';
@@ -26,7 +28,9 @@ import {
   ArrowRight,
   ShieldAlert,
   Sliders,
-  Loader2
+  Loader2,
+  UserPlus,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface ConsorcioExecutiveDashboardProps {
@@ -40,6 +44,7 @@ interface ConsorcioExecutiveDashboardProps {
   consorciosCount: number | null;
   complejosCount: number | null;
   handleSwitchRole: () => void;
+  onOpenWizard?: () => void;
 }
 
 export default function ConsorcioExecutiveDashboard({
@@ -53,14 +58,17 @@ export default function ConsorcioExecutiveDashboard({
   consorciosCount,
   complejosCount,
   handleSwitchRole,
+  onOpenWizard,
 }: ConsorcioExecutiveDashboardProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setConsorcioActivo, setComplejoActivo, complejoActivo } = useConsorcioActivo();
 
-  // Modal de Comunicados Rápido
+  // Modales de Comunicación y Onboarding
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
   const [isNoticeSubmitting, setIsNoticeSubmitting] = useState(false);
+  const [isGestionInvitacionesOpen, setIsGestionInvitacionesOpen] = useState(false);
+  const [isAprobacionVinculacionesOpen, setIsAprobacionVinculacionesOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -290,10 +298,10 @@ export default function ConsorcioExecutiveDashboard({
         <div className="absolute right-24 -bottom-12 -z-10 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
 
         <div className="flex flex-col gap-6 relative z-10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 backdrop-blur-md flex items-center gap-1.5">
+          <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-6">
+            <div className="space-y-3 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 backdrop-blur-md flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-ping" />
                   Centro Operativo Consorcio
                 </span>
@@ -305,31 +313,57 @@ export default function ConsorcioExecutiveDashboard({
                 </button>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-800 dark:text-white flex items-center gap-3">
-                <span>Gestión de Consorcio &amp; Edificios</span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-800 dark:text-white leading-tight">
+                Gestión de Consorcio &amp; Edificios
               </h2>
-              <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
                 Supervisá en tiempo real la administración de consorcios, ocupación de amenities y atención de incidencias del edificio.
               </p>
             </div>
 
             {/* Acciones Rápidas en Banner Header */}
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full xl:w-auto xl:min-w-[440px] shrink-0">
               <button
-                onClick={() => setIsNoticeModalOpen(true)}
-                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-bold shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer transition-all flex items-center gap-2"
+                onClick={() => setIsGestionInvitacionesOpen(true)}
+                className="w-full px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-2"
               >
-                <Megaphone className="w-4 h-4" />
-                <span>Emitir Comunicado Rápido</span>
+                <UserPlus className="w-4 h-4 shrink-0" />
+                <span className="truncate">Gestión de Invitaciones</span>
               </button>
 
               <button
-                onClick={() => router.push(selectedConsorcioId ? `/dashboard/consorcios/${selectedConsorcioId}` : ROUTES.CONSORCIOS)}
-                className="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-xs font-bold shadow-md cursor-pointer transition-all flex items-center gap-2"
+                onClick={() => setIsAprobacionVinculacionesOpen(true)}
+                className="w-full px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-2"
               >
-                <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span>Perfil Legal</span>
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span className="truncate">Aprobar Propietarios</span>
               </button>
+
+              <button
+                onClick={() => setIsNoticeModalOpen(true)}
+                className="w-full px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-bold shadow-lg shadow-blue-500/20 active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-2"
+              >
+                <Megaphone className="w-4 h-4 shrink-0" />
+                <span className="truncate">Emitir Comunicado Rápido</span>
+              </button>
+
+              {onOpenWizard ? (
+                <button
+                  onClick={onOpenWizard}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-500/20 active:scale-95 cursor-pointer transition-all flex items-center justify-center gap-2"
+                >
+                  <Building2 className="w-4 h-4 shrink-0" />
+                  <span className="truncate">+ Alta Consorcio</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push(selectedConsorcioId ? `/dashboard/consorcios/${selectedConsorcioId}` : ROUTES.CONSORCIOS)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-xs font-bold shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
+                >
+                  <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span className="truncate">Perfil Legal</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -358,7 +392,9 @@ export default function ConsorcioExecutiveDashboard({
                 }}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer transition-all"
               >
-                {consorciosList.length === 0 ? (
+                {isLoadingCounts ? (
+                  <option value="">Cargando consorcios...</option>
+                ) : consorciosList.length === 0 ? (
                   <option value="">No hay consorcios registrados</option>
                 ) : (
                   consorciosList.map((c) => (
@@ -384,7 +420,9 @@ export default function ConsorcioExecutiveDashboard({
                 }}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 cursor-pointer transition-all"
               >
-                {complejosDelConsorcio.length === 0 ? (
+                {isLoadingCounts ? (
+                  <option value="">Cargando edificios...</option>
+                ) : complejosDelConsorcio.length === 0 ? (
                   <option value="">(Todos los edificios del consorcio)</option>
                 ) : (
                   complejosDelConsorcio.map((comp) => (
@@ -396,6 +434,23 @@ export default function ConsorcioExecutiveDashboard({
               </select>
             </div>
           </div>
+
+          {!isLoadingCounts && consorciosList.length === 0 && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold backdrop-blur-md">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
+                <span>No hay consorcios registrados en tu cuenta todavía. ¡Comenzá dando de alta tu primer consorcio con el asistente!</span>
+              </div>
+              {onOpenWizard && (
+                <button
+                  onClick={onOpenWizard}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold transition-all shrink-0 cursor-pointer shadow-md active:scale-95"
+                >
+                  + Onboarding / Alta Consorcio
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -629,6 +684,22 @@ export default function ConsorcioExecutiveDashboard({
         onSubmit={handleNoticeSubmit}
         isSubmitLoading={isNoticeSubmitting}
         complejosOptions={complejosOptions}
+      />
+
+      {/* Modal de Gestión de Invitaciones por Edificio */}
+      <GestionInvitacionesAdmin
+        isOpen={isGestionInvitacionesOpen}
+        onClose={() => setIsGestionInvitacionesOpen(false)}
+        idConsorcio={Number(selectedConsorcioId) || 1}
+      />
+
+      {/* Modal de Aprobación de Vinculaciones de Propietarios */}
+      <AprobacionVinculacionesModal
+        isOpen={isAprobacionVinculacionesOpen}
+        onClose={() => setIsAprobacionVinculacionesOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['unidades'] });
+        }}
       />
     </div>
   );

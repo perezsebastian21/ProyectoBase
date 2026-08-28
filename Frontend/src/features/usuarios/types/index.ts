@@ -15,6 +15,7 @@ export interface CreateUsuarioPayload {
   email: string;
   password?: string;
   activo: boolean;
+  idRol?: number;
 }
 
 export interface UpdateUsuarioPayload extends CreateUsuarioPayload {
@@ -26,3 +27,25 @@ export interface UsuariosListParams {
   limit: number;
   search?: string;
 }
+
+// --- Roles ---
+
+export interface Rol {
+  idRol: number;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+}
+
+export interface UsuarioRol {
+  idUsuarioRol: number;
+  idUsuario: number;
+  idRol: number;
+  codigoRol: string;
+  nombreRol: string;
+}
+
+export interface AsignarRolPayload {
+  idRol: number;
+}
+

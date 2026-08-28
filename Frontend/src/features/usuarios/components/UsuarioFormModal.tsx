@@ -1,27 +1,17 @@
-'use client';
+﻿'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import type { Usuario, CreateUsuarioPayload } from '../types';
+import type { Usuario, CreateUsuarioPayload, Rol } from '../types';
+import { rolService } from '../services/rolService';
 import { Modal } from '@/components/ui/Modal';
 import { FormInput } from '@/components/ui/FormInput';
 import { FormCheckbox } from '@/components/ui/FormCheckbox';
+import { FormSelect } from '@/components/ui/FormSelect';
 import { Loader2 } from 'lucide-react';
 
-const usuarioSchema = z.object({
-  username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
-  email: z.string().email('Debe ser un email válido'),
-  password: z.string().optional(),
-  activo: z.boolean(),
-}).refine(data => {
-  // If it's a new user (which we can infer if we check initialData in the component, 
-  // but here we just check if it has a password or if it's optional for edit)
-  return true;
-});
-
-// We need a specific schema for create vs update because password is required for create
 const getUsuarioSchema = (isEditing: boolean) => z.object({
   username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
   email: z.string().email('Debe ser un email válido'),
@@ -29,6 +19,7 @@ const getUsuarioSchema = (isEditing: boolean) => z.object({
     ? z.string().optional()
     : z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   activo: z.boolean(),
+  idRol: z.union([z.string(), z.number()]).optional(),
 });
 
 type UsuarioFormValues = z.infer<ReturnType<typeof getUsuarioSchema>>;
@@ -50,6 +41,8 @@ export default function UsuarioFormModal({
 }: UsuarioFormModalProps) {
   const isEditing = !!initialData;
   const schema = getUsuarioSchema(isEditing);
+  const [rolesCatalogo, setRolesCatalogo] = useState<Rol[]>([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
 
   const {
     register,
@@ -57,35 +50,51 @@ export default function UsuarioFormModal({
     reset,
     setError,
     formState: { errors },
-  } = useForm<z.infer<typeof schema>>({
+  } = useForm<UsuarioFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       username: '',
       email: '',
       password: '',
       activo: true,
+      idRol: '',
     },
   });
 
   useEffect(() => {
-    if (initialData && isOpen) {
-      reset({
-        username: initialData.username,
-        email: initialData.email,
-        password: '',
-        activo: initialData.activo,
-      });
-    } else if (isOpen) {
-      reset({
-        username: '',
-        email: '',
-        password: '',
-        activo: true,
-      });
-    }
-  }, [initialData, isOpen, reset]);
+    if (isOpen) {
+      if (!isEditing) {
+        setIsLoadingRoles(true);
+        rolService.getCatalogo().then((res) => {
+          if (res.success && res.data) {
+            setRolesCatalogo(res.data);
+          }
+        }).finally(() => {
+          setIsLoadingRoles(false);
+        });
+      }
 
-  const onFormSubmit = async (data: z.infer<typeof schema>) => {
+      if (initialData) {
+        reset({
+          username: initialData.username,
+          email: initialData.email,
+          password: '',
+          activo: initialData.activo,
+          idRol: '',
+        });
+      } else {
+        reset({
+          username: '',
+          email: '',
+          password: '',
+          activo: true,
+          idRol: '',
+        });
+      }
+    }
+  }, [initialData, isOpen, isEditing, reset]);
+
+  const onFormSubmit = async (data: UsuarioFormValues) => {
     const payload: CreateUsuarioPayload = {
       username: data.username.trim(),
       email: data.email.trim(),
@@ -96,11 +105,23 @@ export default function UsuarioFormModal({
       payload.password = data.password;
     }
 
+    if (data.idRol && String(data.idRol).trim() !== '') {
+      payload.idRol = Number(data.idRol);
+    }
+
     const res = await onSubmit(initialData ? { ...payload, idUsuario: initialData.idUsuario } : payload);
     if (!res.success && res.error) {
       setError('root', { message: res.error });
     }
   };
+
+  const rolOptions = [
+    { value: '', label: 'Sin rol inicial asignado' },
+    ...rolesCatalogo.map((r) => ({
+      value: r.idRol,
+      label: `${r.nombre} (${r.descripcion})`,
+    }))
+  ];
 
   return (
     <Modal
@@ -142,6 +163,21 @@ export default function UsuarioFormModal({
           disabled={isSubmitLoading}
         />
 
+        {!isEditing && (
+          <div className="space-y-1">
+            <FormSelect
+              label={isLoadingRoles ? "Cargando roles..." : "Rol Inicial"}
+              options={rolOptions}
+              {...register('idRol')}
+              error={errors.idRol?.message as string | undefined}
+              disabled={isSubmitLoading || isLoadingRoles}
+            />
+            <p className="text-[11px] text-slate-400">
+              Opcional: podés asignarle un rol ahora o gestionar múltiples roles después desde el botón "Roles".
+            </p>
+          </div>
+        )}
+
         <div className="pt-2">
           <FormCheckbox
             label="Usuario Activo"
@@ -157,14 +193,14 @@ export default function UsuarioFormModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitLoading}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-[var(--brand-surface-bright)]/30 text-sm font-semibold hover:bg-[var(--brand-surface-container)] transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl border border-[var(--brand-surface-bright)]/30 text-sm font-semibold hover:bg-[var(--brand-surface-container)] transition-all cursor-pointer"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isSubmitLoading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSubmitLoading ? (
               <>

@@ -11,7 +11,7 @@ export interface UnidadPropietarioResumen {
 export const propietarioService = {
   /** Obtener todas las unidades vinculadas al Propietario (BR-AUTH-010) */
   async getMisUnidades(): Promise<ServiceResponse<UnidadPropietarioResumen[]>> {
-    return apiClient<ServiceResponse<UnidadPropietarioResumen[]>>('/Propietario/MisUnidades', {
+    return apiClient<ServiceResponse<UnidadPropietarioResumen[]>>('/api/usuario-unidad/mis-unidades', {
       method: 'GET',
     });
   },

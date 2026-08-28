@@ -13,8 +13,13 @@ namespace ProyectoBase.Controllers
 {
     [ApiController]
     [Route("api/usuario-unidad")]
+    [Route("api/usuario-unidades")]
     [Route("usuario-unidad")]
+    [Route("usuario-unidades")]
     [Route("UsuarioUnidad")]
+    [Route("UsuarioUnidades")]
+    [Route("api/unidades")]
+    [Route("unidades")]
     public class UsuarioUnidadController : ControllerBase
     {
         private readonly IUsuarioUnidadService _usuarioUnidadService;
@@ -39,6 +44,8 @@ namespace ProyectoBase.Controllers
         /// Obtiene las unidades habitacionales vinculadas al usuario actualmente autenticado.
         /// </summary>
         [HttpGet("mis-unidades")]
+        [HttpGet("me")]
+        [HttpGet("mis-propiedades")]
         [Authorize]
         public async Task<IActionResult> GetMisUnidades()
         {

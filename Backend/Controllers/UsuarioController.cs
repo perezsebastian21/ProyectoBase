@@ -6,17 +6,50 @@ using ProyectoBase.Services.UsuarioService;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using ProyectoBase.Services.UsuarioUnidadService;
+using System.Security.Claims;
+
 namespace ProyectoBase.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Route("api/usuario")]
+    [Route("usuario")]
     public class UsuarioController : GenericControllerAsync<Usuario>
     {
         private readonly IUsuarioService _usuarioService;
+        private readonly IUsuarioUnidadService _usuarioUnidadService;
 
-        public UsuarioController(IServiceAsync<Usuario> service, IUsuarioService usuarioService) : base(service)
+        public UsuarioController(IServiceAsync<Usuario> service, IUsuarioService usuarioService, IUsuarioUnidadService usuarioUnidadService) : base(service)
         {
             _usuarioService = usuarioService;
+            _usuarioUnidadService = usuarioUnidadService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                     ?? User?.FindFirst("id")?.Value
+                     ?? User?.FindFirst("sub")?.Value;
+
+            if (int.TryParse(claim, out int userId))
+                return userId;
+            return 0;
+        }
+
+        /// <summary>
+        /// Obtiene las unidades habitacionales vinculadas al usuario actualmente autenticado.
+        /// </summary>
+        [HttpGet("mis-unidades")]
+        [Authorize]
+        public async Task<IActionResult> GetMisUnidades()
+        {
+            int userId = GetCurrentUserId();
+            if (userId <= 0)
+                return Unauthorized(new ServiceResponse<object>("No se pudo identificar al usuario autenticado."));
+
+            var misUnidades = await _usuarioUnidadService.ObtenerMisUnidadesAsync(userId);
+            return Ok(new ServiceResponse<object>(misUnidades));
         }
 
         /// <summary>

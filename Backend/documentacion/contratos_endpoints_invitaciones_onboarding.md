@@ -260,3 +260,34 @@ Pasa el estado a `"RECHAZADA"` con motivo explicativo.
   "errorMessage": null
 }
 ```
+
+---
+
+### 9. Mis Unidades del Residente Autenticado (`GET /api/usuario-unidad/mis-unidades`)
+Obtiene la lista de unidades habitacionales vinculadas al usuario actualmente autenticado (en estado `"VIGENTE"`).
+
+* **HTTP Method**: `GET`
+* **Ruta**: `/api/usuario-unidad/mis-unidades` (Alias soportados: `/usuario-unidad/mis-unidades`, `/UsuarioUnidad/mis-unidades`)
+* **Autorización**: `[Authorize]` (Residente, Propietario, Inquilino, Admin).
+* **Respuesta Exitosa (`200 OK`)**:
+```json
+{
+  "data": [
+    {
+      "idUsuarioUnidad": 15,
+      "idUnidadHabitacional": 105,
+      "identificadorUnidad": "Depto 4º B",
+      "idComplejo": 2,
+      "nombreComplejo": "Torre A",
+      "idConsorcio": 1,
+      "nombreConsorcio": "Consorcio Las Heras",
+      "tipoRelacion": "PROPIETARIO",
+      "esOcupanteActual": true,
+      "estadoRelacion": "VIGENTE"
+    }
+  ],
+  "success": true,
+  "errorMessage": null
+}
+```
+

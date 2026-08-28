@@ -7,10 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using System.Security.Claims;
+
 namespace ProyectoBase.Controllers
 {
     [ApiController]
     [Route("api/usuario-unidad")]
+    [Route("usuario-unidad")]
+    [Route("UsuarioUnidad")]
     public class UsuarioUnidadController : ControllerBase
     {
         private readonly IUsuarioUnidadService _usuarioUnidadService;
@@ -18,6 +22,32 @@ namespace ProyectoBase.Controllers
         public UsuarioUnidadController(IUsuarioUnidadService usuarioUnidadService)
         {
             _usuarioUnidadService = usuarioUnidadService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                     ?? User?.FindFirst("id")?.Value
+                     ?? User?.FindFirst("sub")?.Value;
+
+            if (int.TryParse(claim, out int userId))
+                return userId;
+            return 0;
+        }
+
+        /// <summary>
+        /// Obtiene las unidades habitacionales vinculadas al usuario actualmente autenticado.
+        /// </summary>
+        [HttpGet("mis-unidades")]
+        [Authorize]
+        public async Task<IActionResult> GetMisUnidades()
+        {
+            int userId = GetCurrentUserId();
+            if (userId <= 0)
+                return Unauthorized(new ServiceResponse<object>("No se pudo identificar al usuario autenticado."));
+
+            var misUnidades = await _usuarioUnidadService.ObtenerMisUnidadesAsync(userId);
+            return Ok(new ServiceResponse<object>(misUnidades));
         }
 
         /// <summary>

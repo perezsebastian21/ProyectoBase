@@ -49,5 +49,14 @@ namespace ProyectoBase.Tests.Controllers
             var ok = result.Should().BeOfType<OkObjectResult>().Subject;
             ok.StatusCode.Should().Be(200);
         }
+
+        [Fact]
+        public async Task GetMisUnidades_ShouldReturn401_WhenUserNotAuthenticated()
+        {
+            var result = await _controller.GetMisUnidades();
+
+            var unauthorized = result.Should().BeOfType<UnauthorizedObjectResult>().Subject;
+            unauthorized.StatusCode.Should().Be(401);
+        }
     }
 }

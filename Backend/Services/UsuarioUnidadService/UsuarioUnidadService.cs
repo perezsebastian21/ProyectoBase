@@ -49,6 +49,30 @@ namespace ProyectoBase.Services.UsuarioUnidadService
             });
         }
 
+        public async Task<IEnumerable<MiUnidadDto>> ObtenerMisUnidadesAsync(int idUsuario)
+        {
+            var misUnidades = await _context.UsuariosUnidades
+                .Include(uu => uu.UnidadHabitacional)
+                    .ThenInclude(u => u.Complejo)
+                        .ThenInclude(c => c.Consorcio)
+                .Where(uu => uu.IDUsuario == idUsuario && uu.EstadoRelacion == "VIGENTE")
+                .ToListAsync();
+
+            return misUnidades.Select(uu => new MiUnidadDto
+            {
+                IDUsuarioUnidad = uu.IDUsuarioUnidad,
+                IDUnidadHabitacional = uu.IDUnidadHabitacional,
+                IdentificadorUnidad = uu.UnidadHabitacional?.Identificador,
+                IDComplejo = uu.UnidadHabitacional?.IDComplejo,
+                NombreComplejo = uu.UnidadHabitacional?.Complejo?.Nombre,
+                IDConsorcio = uu.UnidadHabitacional?.Complejo?.IDConsorcio,
+                NombreConsorcio = uu.UnidadHabitacional?.Complejo?.Consorcio?.Nombre,
+                TipoRelacion = uu.TipoRelacion,
+                EsOcupanteActual = uu.EsOcupanteActual,
+                EstadoRelacion = uu.EstadoRelacion
+            });
+        }
+
         public async Task<UsuarioUnidad> AprobarUsuarioUnidadAsync(int idUsuarioUnidad)
         {
             var uu = await _context.UsuariosUnidades
